@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the paper and the software itself."
+type: software
+title: "genai_batch_ie_rfs"
+version: "0.1.0a1"
+date-released: "2026-04-12"
+license: MIT
+url: "https://github.com/feng-mai/genai_batch_ie_rfs"
+
+authors:
+  - family-names: Mai
+    given-names: Feng
+    affiliation: "University of Iowa, Tippie College of Business"
+
+references:
+  - type: article
+    title: "Dissecting Corporate Culture Using Generative AI"
+    authors:
+      - family-names: Li
+        given-names: Kai
+      - family-names: Mai
+        given-names: Feng
+      - family-names: Shen
+        given-names: Rui
+      - family-names: Yang
+        given-names: Zilong
+      - family-names: Zhang
+        given-names: Xinlei
+    journal: "Review of Financial Studies"
+    volume: 39
+    issue: 1
+    start: 253
+    end: 296
+    year: 2026
+    doi: "10.1093/rfs/hhaf081"
