@@ -1,7 +1,7 @@
 """Settings module: pydantic-settings configuration loaded from .env and environment variables.
 
 Input: environment variables or a .env file in the working directory.
-Output: a singleton Settings instance importable as `from genai_batch_ie_rfs.settings import settings`.
+Output: a singleton Settings instance importable as `from lmsyz_genai_ie_rfs.settings import settings`.
 """
 
 from __future__ import annotations

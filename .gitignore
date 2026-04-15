@@ -62,3 +62,5 @@ batch_jobs/
 .vscode/
 *.swp
 *.swo
+test_artifacts/
+site/

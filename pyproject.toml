@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "genai_batch_ie_rfs"
+name = "lmsyz_genai_ie_rfs"
 version = "0.1.0a1"
 description = "Concurrent and batch LLM calls on a pandas DataFrame with Pydantic-typed outputs."
 readme = "README.md"
@@ -40,16 +40,24 @@ dev = [
     "mypy>=1.10",
     "jupytext>=1.16",
 ]
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.5,<10",
+    "mkdocstrings[python]>=0.26,<1",
+    "mkdocs-include-markdown-plugin>=7,<8",
+    "pymdown-extensions>=10",
+    "pygments>=2.15,<2.20",
+]
 
 [project.urls]
 Paper = "https://doi.org/10.1093/rfs/hhaf081"
-Repository = "https://github.com/feng-mai/genai_batch_ie_rfs"
+Repository = "https://github.com/feng-mai/lmsyz_genai_ie_rfs"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"genai_batch_ie_rfs" = ["prompts/*"]
+"lmsyz_genai_ie_rfs" = ["prompts/*"]
 
 [tool.ruff]
 line-length = 100
@@ -67,3 +75,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
+markers = [
+    "live: tests that call real LLM APIs. Require OPENAI_API_KEY or ANTHROPIC_API_KEY. Skipped by default.",
+    "slow: tests that may take several minutes (batch API polling). Skipped by default with '-m \"not slow\"'.",
+]

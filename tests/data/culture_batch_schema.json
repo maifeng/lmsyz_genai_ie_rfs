@@ -1,0 +1,41 @@
+{
+  "type": "json_schema",
+  "json_schema": {
+    "name": "culture_batch",
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all_results"],
+      "properties": {
+        "all_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["input_id", "culture_type", "tone", "confidence"],
+            "properties": {
+              "input_id": {"type": "string"},
+              "culture_type": {
+                "type": "string",
+                "enum": [
+                  "collaboration_people",
+                  "customer_oriented",
+                  "innovation_adaptability",
+                  "integrity_risk",
+                  "performance_oriented",
+                  "miscellaneous"
+                ]
+              },
+              "tone": {
+                "type": "string",
+                "enum": ["positive", "neutral", "negative"]
+              },
+              "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -9,7 +9,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from genai_batch_ie_rfs.dataframe import DataFrameIterator
+from lmsyz_genai_ie_rfs.dataframe import DataFrameIterator
 
 
 def _make_df(n: int) -> pd.DataFrame:

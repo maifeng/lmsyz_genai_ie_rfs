@@ -1,0 +1,80 @@
+site_name: lmsyz_genai_ie_rfs
+site_description: Prompt-based information extraction over pandas DataFrames.
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+      primary: custom
+      accent: custom
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+      primary: custom
+      accent: custom
+  features:
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - tables
+  - attr_list
+
+plugins:
+  - search
+  - include-markdown
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src/lmsyz_genai_ie_rfs
+          options:
+            show_source: false
+            show_signature_annotations: true
+            members_order: source
+            docstring_style: google
+            heading_level: 3
+
+nav:
+  - Home: index.md
+  - Concepts:
+      - Architecture: concepts/architecture.md
+      - Prompts and schemas: concepts/prompts-and-schemas.md
+      - Results database: concepts/results-db.md
+  - How-to:
+      - Resume after a crash: how-to/resume-after-crash.md
+      - Change the prompt safely: how-to/change-prompt-safely.md
+      - Switch providers: how-to/switch-providers.md
+      - Run a batch job: how-to/batch-jobs.md
+      - Inspect the results database: how-to/inspect-results-db.md
+      - Troubleshooting: explanation/troubleshooting.md
+  - Reference:
+      - extract_df: reference/extract_df.md
+      - Batch extractors: reference/batch-extractors.md
+      - SqliteCache: reference/sqlite-cache.md
+      - Settings: reference/settings.md
+  - Explanation:
+      - Design decisions: explanation/design-decisions.md

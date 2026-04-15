@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite both the paper and the software itself."
 type: software
-title: "genai_batch_ie_rfs"
+title: "lmsyz_genai_ie_rfs"
 version: "0.1.0a1"
 date-released: "2026-04-12"
 license: MIT
-url: "https://github.com/feng-mai/genai_batch_ie_rfs"
+url: "https://github.com/feng-mai/lmsyz_genai_ie_rfs"
 
 authors:
   - family-names: Mai
@@ -23,9 +23,9 @@ references:
       - family-names: Shen
         given-names: Rui
       - family-names: Yang
-        given-names: Zilong
+        given-names: Chelsea
       - family-names: Zhang
-        given-names: Xinlei
+        given-names: Tengfei
     journal: "Review of Financial Studies"
     volume: 39
     issue: 1

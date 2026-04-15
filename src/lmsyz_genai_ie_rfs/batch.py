@@ -1,6 +1,8 @@
 """Batch API path: OpenAI Batch API job submission, status polling, and result retrieval.
 
-Lifted and modernized from gpt_funcs.py:GPTBatchJobClassifier.
+Lifted and modernized from gpt_funcs.py:GPTBatchJobClassifier (renamed to
+OpenAIBatchExtractor to reflect that the package is general-purpose
+extraction, not classification).
 
 P0 BUG FIX (original gpt_funcs.py:303):
     The original code passed the system prompt as {"role": "assistant", ...}.
@@ -11,6 +13,28 @@ P0 BUG FIX (original gpt_funcs.py:303):
 
 Input: a pandas DataFrame with id and text columns, plus a prompt string.
 Output: batch JSONL files on disk, then a pandas DataFrame of parsed results.
+
+# MODEL-SWITCHING GUIDE
+#
+# To use a different OpenAI model, pass model_name= to create_batch_jsonl:
+#     clf.create_batch_jsonl(df, ..., model_name="gpt-4.1")
+#
+# Temperature is forced to 1.0 automatically for o1, o3, and gpt-5 model
+# families. All other models use the temperature= argument (default 0.0).
+#
+# To use the Anthropic batch API (which uses a JSON body, not JSONL file
+# upload), see AnthropicBatchJobClassifier in a future batch_anthropic.py
+# module. Anthropic batch format is entirely different: requests are sent
+# as a list in a single POST body to /v1/messages/batches; there is no
+# file upload step and no JSONL written to disk.
+#
+# To use Gemini via the OpenAI-compatible endpoint for batch jobs, note that
+# as of 2026-04 the Gemini OpenAI-compat layer does NOT support
+# client.files.create for file upload. You must use the google-generativeai
+# (genai) SDK for the upload step, then pass the resulting file ID to
+# openai_client.batches.create(input_file_id=...). Because of this hybrid
+# requirement, the recommended approach for Gemini users is the concurrent
+# path: LLMClient(backend='openai', base_url=gemini_compat_url, ...).
 """
 
 from __future__ import annotations
@@ -25,7 +49,7 @@ import openai
 import pandas as pd
 from tqdm import tqdm
 
-from genai_batch_ie_rfs.dataframe import DataFrameIterator
+from lmsyz_genai_ie_rfs.dataframe import DataFrameIterator
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +71,7 @@ def _requires_temp_one(model_name: str) -> bool:
     return lower.startswith("o1") or lower.startswith("o3") or "gpt-5" in lower
 
 
-class GPTBatchJobClassifier:
+class OpenAIBatchExtractor:
     """Submit, monitor, and retrieve OpenAI Batch API jobs from a DataFrame.
 
     Handles the full lifecycle:

@@ -1,0 +1,30 @@
+You are an expert in corporate culture and causal reasoning. Analyze each analyst-report segment and extract structured information about the company's corporate culture and any cause-effect relationships. Think step by step.
+
+For each input row:
+
+1. input_id: Copy the input_id verbatim.
+
+2. identified_corporate_culture: A short phrase starting with an adjective that summarizes the specific corporate culture discussed. Avoid generic adjectives like strong/weak/positive/negative. If the segment does not contain enough context, output "I need more context".
+
+3. corporate_culture_type: Classify the culture into exactly one of the six categories below. If not enough context, output "I need more context".
+   - Innovation and Adaptability: creativity, technology, entrepreneurship, flexibility, agility, disruption, experimentation, resilience to change.
+   - Collaboration and People-Focused: teamwork, community, employee well-being, diversity, inclusion, empowerment, talent, communication.
+   - Customer-Oriented: customer service, retention, satisfaction, user experience, brand-driven, product or service quality.
+   - Integrity and Risk Management: ethics, transparency, accountability, compliance, risk control, financial prudence.
+   - Performance-Oriented: high expectations, sales growth, competitiveness, efficiency, operational excellence.
+   - Miscellaneous: non-specific or generic cultural statements that do not fit the above.
+
+4. detailed_causal_analysis: "YES" if the segment contains explicit causal reasoning (trigger words: affect, cause, influence, lead to, result in, fosters, driven by). "NO" if no such analysis. "I need more context" if unclear.
+
+5. causes_of_culture: If detailed_causal_analysis is "YES", list specific events, people, or systems that shaped or will change the culture. Otherwise return []. Do not list other culture types as causes.
+
+6. outcomes_from_culture: If detailed_causal_analysis is "YES", list specific business outcomes, results, or tangible impacts caused by the culture. Otherwise return []. Do not list other culture types as outcomes.
+
+7. tone: One of "positive", "neutral", or "negative". If unclear, use "neutral".
+
+8. causal_graph_triples: Zero or more triples connecting the identified culture (from field 2) to causes (field 5) or outcomes (field 6). Each triple is:
+   - triple: ["entity_1", "relation", "entity_2"] where exactly one of entity_1 / entity_2 is the identified culture and the other is a cause or outcome. relation is a short verb phrase.
+   - explanation: Brief rationale citing specific words or phrases.
+   Never let both entities be corporate cultures.
+
+Return a JSON object with key "all_results" whose value is a list, one object per input row, each with fields: input_id, identified_corporate_culture, corporate_culture_type, detailed_causal_analysis, causes_of_culture, outcomes_from_culture, tone, causal_graph_triples.
