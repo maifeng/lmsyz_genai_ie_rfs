@@ -28,19 +28,20 @@
 # ## 1. Install (run once in Colab)
 
 # %%
-# Uncomment and run in Colab:
-# !pip install lmsyz_genai_ie_rfs
+# !pip install -q lmsyz_genai_ie_rfs    # uncomment and run in Colab
 
 # %% [markdown]
 # ## 2. Set your API key
 #
-# The library reads `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`) from the environment.
+# The library reads `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`) from the
+# environment. **You must uncomment one of the lines below and paste your
+# key**, otherwise the extraction cell will fail with an authentication error.
 
 # %%
 import os
 
-# os.environ["OPENAI_API_KEY"] = "sk-..."
-# os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."
+# os.environ["OPENAI_API_KEY"] = "sk-..."          # uncomment and fill in
+# os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."   # OR this one for Claude
 
 # %% [markdown]
 # ## 3. Build a DataFrame
@@ -74,6 +75,8 @@ For each input row, extract:
 
 Return a JSON object with key "all_results" whose value is the list of per-row objects.
 """
+# Note: the library parses the LLM response by looking for the top-level
+# key "all_results". If you write your own prompt, keep this key name.
 
 # %% [markdown]
 # ## 5. Extract
@@ -89,20 +92,59 @@ out = extract_df(
     id_col="id", text_col="text",
     cache_path="quickstart_results.sqlite",   # required: every row is persisted here as it completes
 )
-print(out)
+out
+
+# %% [markdown]
+# The output is a DataFrame with one row per input. Columns depend on the
+# prompt: here you will see `entities`, `events`, `causal_triples`, and
+# `sentiment`. Because LLM output is stochastic, your exact results may
+# differ slightly from a colleague's.
+
+# %%
+out.to_csv("extraction_results.csv", index=False)
+print("Saved to extraction_results.csv")
 
 # %% [markdown]
 # ## 6. (Optional) Enforce a JSON schema
 #
-# If you want the provider to reject malformed rows, point `schema=` at a JSON
-# schema file. The same file works for both OpenAI (as `response_format`) and
-# Anthropic (as a forced `tool_use` schema). No code changes needed.
+# Pass a dict or a path to a JSON file to `schema=`. The library uses it as
+# OpenAI `response_format` or Anthropic `tool_use` input_schema. The same
+# file works on both providers.
 
 # %%
+my_schema = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "extraction",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "all_results": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "input_id": {"type": "integer"},
+                            "sentiment": {"type": "string", "enum": ["positive", "neutral", "negative"]},
+                        },
+                        "required": ["input_id", "sentiment"],
+                        "additionalProperties": True,
+                    },
+                },
+            },
+            "required": ["all_results"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+# Uncomment to try:
 # out_strict = extract_df(
-#     df, prompt=PROMPT, schema="my_schema.json",
+#     df, prompt=PROMPT, schema=my_schema,
 #     backend="openai", model="gpt-4.1-mini",
 #     id_col="id", text_col="text",
+#     cache_path="quickstart_strict.sqlite",
 # )
 
 # %% [markdown]
@@ -221,3 +263,14 @@ culture_out
 # %%
 import lmsyz_genai_ie_rfs
 print(lmsyz_genai_ie_rfs.__paper__)
+
+# %% [markdown]
+# ## 12. Related packages
+#
+# This workshop covers three tools. Pick the one that fits your research question:
+#
+# | Package | Best for | Runtime |
+# |---|---|---|
+# | **`lmsyz_genai_ie_rfs`** (this notebook) | Structured extraction: culture type, causes, consequences, causal triples | Requires an LLM API key |
+# | **`spar_measure`** | Scoring short texts on a custom semantic scale (e.g., CVF dimensions) | Local CPU/GPU, no API key |
+# | **`lmsy_w2v_rfs`** | Historical, deterministic 5-dimension culture scores from word2vec | Local CPU, no API key |
