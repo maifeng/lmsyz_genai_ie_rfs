@@ -129,7 +129,85 @@ print(out)
 # Reuse rows even when the prompt changed: ``ignore_prompt_hash=True``.
 
 # %% [markdown]
-# ## 9. Citation
+# ## 9. Case study: RFS 2026 culture pipeline in one cell
+#
+# This is the extraction task from Li, Mai, Shen, Yang, Zhang (2026).
+# Given a chunk of analyst report text, classify the corporate culture type,
+# extract causes and consequences, and identify causal triples.
+
+# %%
+culture_df = pd.DataFrame({
+    "id": ["10233684", "10260257", "10302283"],
+    "text": [
+        "The new CEO has initiated a complete restructuring of the R&D division, "
+        "replacing legacy processes with agile sprints and cross-functional pods. "
+        "Engineers report higher autonomy but also describe a 'move fast' pressure "
+        "that has shortened product review cycles from six months to six weeks.",
+
+        "Following the data breach in Q2, the board mandated a company-wide overhaul "
+        "of information security protocols. Compliance headcount doubled, and every "
+        "product release now requires sign-off from the newly created Chief Risk "
+        "Officer. Employees describe the environment as cautious but trustworthy.",
+
+        "Management has publicly committed to a 'customer obsession' philosophy, "
+        "tying 30% of executive compensation to Net Promoter Score. Support teams "
+        "now operate 24/7, and the company has opened regional service centers in "
+        "twelve cities. Analyst consensus is that retention metrics have improved.",
+    ],
+})
+
+CULTURE_PROMPT = """\
+For each input row, classify the corporate culture described in the text.
+
+Extract:
+- input_id: copy the id verbatim.
+- culture_type: one of "Collaboration / People-Focused", "Customer-Oriented",
+  "Innovation / Adaptability", "Integrity / Risk Management",
+  "Performance-Oriented", or "Miscellaneous".
+- tone: "positive", "negative", or "neutral".
+- causes: list of strings describing what drives this culture.
+- consequences: list of strings describing the effects of this culture.
+- causal_triples: list of [cause, relation, effect] triples if explicit
+  causation is stated.
+
+Return a JSON object with key "all_results" whose value is the list of
+per-row objects.
+"""
+
+# %%
+culture_out = extract_df(
+    culture_df,
+    prompt=CULTURE_PROMPT,
+    backend="openai",
+    model="gpt-4.1-mini",
+    id_col="id",
+    text_col="text",
+    cache_path="culture_demo.sqlite",
+)
+culture_out
+
+# %% [markdown]
+# ## 10. Batch API (50% cheaper, up to 24h turnaround)
+#
+# For large jobs (thousands of rows), the OpenAI Batch API cuts cost in half.
+# Submit a JSONL file, poll for completion, retrieve results.
+
+# %%
+# from lmsyz_genai_ie_rfs import OpenAIBatchExtractor
+#
+# batch = OpenAIBatchExtractor(model="gpt-4.1-mini")
+# jsonl_path = batch.create_batch_jsonl(
+#     culture_df, prompt=CULTURE_PROMPT,
+#     id_col="id", text_col="text",
+#     output_path="culture_batch.jsonl",
+# )
+# batch_id = batch.submit_batches([jsonl_path])
+# # Poll later:
+# # status = batch.check_batch_status(batch_id)
+# # results = batch.retrieve_results_as_dataframe(batch_id)
+
+# %% [markdown]
+# ## 11. Citation
 #
 # If you use this package in research, please cite:
 #
