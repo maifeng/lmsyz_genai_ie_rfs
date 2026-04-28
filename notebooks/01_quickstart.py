@@ -34,7 +34,7 @@
 # everyone on the same version.
 
 # %%
-# !pip install -q lmsyz_genai_ie_rfs==0.1.0a3
+# !pip install -q -U lmsyz_genai_ie_rfs
 
 # %% [markdown]
 # ## 2. Set your API key

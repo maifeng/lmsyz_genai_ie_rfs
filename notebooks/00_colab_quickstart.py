@@ -27,7 +27,7 @@
 # ## 1. Install
 
 # %%
-# !pip install -q lmsyz_genai_ie_rfs==0.1.0a3
+# !pip install -q -U lmsyz_genai_ie_rfs
 
 # %% [markdown]
 # ## 2. Set your OpenAI key
@@ -60,13 +60,36 @@ df
 
 # %%
 prompt = """
-For each input row, extract:
-- input_id: copy the id verbatim.
-- entities: list every named entity, each as {"name": ..., "type": "PERSON|ORG|PRODUCT|DATE|MONEY|EVENT"}.
-- causal_triples: explicit cause-effect relations as ["cause", "relation", "effect"]; empty list if none.
-- sentiment: "positive", "neutral", or "negative".
+You are an information-extraction assistant. For each input row, analyze the text and extract structured information.
 
-Return a JSON object: {"all_results": [<one object per row>]}.
+Step-by-step instructions:
+
+1. input_id: Copy the input_id from the row verbatim.
+2. entities: List every named entity mentioned in the text. For each entity give:
+   - name: the surface form as it appears in the text.
+   - type: one of "PERSON", "ORG", "PRODUCT", "DATE", "MONEY".
+3. causal_triples: If the text explicitly states a cause and effect, list each as a
+   three-element array ["cause", "relation", "effect"]. If there is no explicit
+   causation, return an empty list []. All elements should be concisely summarized, in three words or less.
+4. sentiment: One of "positive", "neutral", or "negative".
+
+Return a JSON object with this EXACT structure:
+
+{
+  "all_results": [
+    {
+      "input_id": "1",
+      "entities": [
+        {"name": "Apple",    "type": "ORG"},
+        {"name": "Tim Cook", "type": "PERSON"}
+      ],
+      "causal_triples": [[cause_1, relation_1, effect_1], [cause_2, relation_2, effect_2], ...],
+      "sentiment": "positive/neutral/negative"
+    }
+  ]
+}
+
+Do not include any fields besides input_id, entities, causal_triples, and sentiment.
 """
 
 # %% [markdown]

@@ -20,7 +20,7 @@ from lmsyz_genai_ie_rfs.batch import OpenAIBatchExtractor
 from lmsyz_genai_ie_rfs.client import extract_df
 from lmsyz_genai_ie_rfs.dataframe import SqliteCache
 
-__version__ = "0.1.0a3"
+__version__ = "0.1.0"
 
 __paper__ = (
     "Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang. 2026. "
