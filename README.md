@@ -11,7 +11,7 @@ Li, Mai, Shen, Yang, Zhang (2026), "Dissecting Corporate Culture Using Generativ
 ## Install
 
 ```bash
-pip install lmsyz_genai_ie_rfs
+pip install -U lmsyz_genai_ie_rfs
 ```
 
 Set at least one provider key (or drop them in a `.env` file next to your notebook):
@@ -97,6 +97,7 @@ out = extract_df(
     model="gpt-4.1-mini",
     cache_path="demo.sqlite",
     id_col="id", text_col="text",
+    api_key=os.environ["OPENAI_API_KEY"],
 )
 
 print(out)
