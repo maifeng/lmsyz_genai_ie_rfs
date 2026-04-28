@@ -20,9 +20,10 @@ pip install -U lmsyz_genai_ie_rfs
 
 Set at least one provider key (or drop them in a `.env` file next to your notebook):
 
-```bash
-export OPENAI_API_KEY=sk-...
-export ANTHROPIC_API_KEY=sk-ant-...
+```python
+import os
+os.environ["OPENAI_API_KEY"] = "sk-..."
+# os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."
 ```
 
 ---
