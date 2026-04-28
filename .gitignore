@@ -43,9 +43,10 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
-# Exception: the Colab-shareable quickstart is checked in so the
+# Exception: Colab-shareable quickstarts are checked in so the
 # Colab GitHub-loader URL resolves (https://colab.research.google.com/github/...).
 !notebooks/00_colab_quickstart.ipynb
+!notebooks/01_quickstart.ipynb
 
 # Batch job output
 batch_jobs/
