@@ -50,7 +50,7 @@ plugins:
       handlers:
         python:
           paths:
-            - src/lmsyz_genai_ie_rfs
+            - src
           options:
             show_source: false
             show_signature_annotations: true

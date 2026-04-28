@@ -50,6 +50,7 @@ Structured DataFrame out:
 One function call:
 
 ```python
+import os
 import pandas as pd
 from lmsyz_genai_ie_rfs import extract_df
 

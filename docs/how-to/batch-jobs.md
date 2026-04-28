@@ -70,6 +70,17 @@ from lmsyz_genai_ie_rfs import AnthropicBatchExtractor
 
 df = pd.read_csv("my_corpus.csv")
 
+prompt = """
+For each input row, extract:
+- input_id: copy verbatim.
+- culture_type: one of collaboration_people, customer_oriented, innovation_adaptability,
+  integrity_risk, performance_oriented, miscellaneous.
+- tone: "positive", "neutral", or "negative".
+- confidence: float in [0.0, 1.0].
+
+Return {"all_results": [...]}.
+"""
+
 # For Anthropic, schema_dict is the INNER JSON schema (not the OpenAI wrapper).
 import json
 full_schema = json.loads(open("culture_batch_schema.json").read())

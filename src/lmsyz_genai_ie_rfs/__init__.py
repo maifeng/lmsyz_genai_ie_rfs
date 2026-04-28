@@ -38,6 +38,4 @@ __all__ = [
     "OpenAIBatchExtractor",
     "AnthropicBatchExtractor",
     "SqliteCache",
-    "__version__",
-    "__paper__",
 ]
