@@ -5,6 +5,41 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.1.3] - 2026-04-28
+
+### Added
+
+- Documentation site at https://maifeng.github.io/lmsyz_genai_ie_rfs/ (gh-pages deploy).
+- `Documentation` and `Changelog` entries in `[project.urls]`.
+- NFS / read-only filesystem caveat in `docs/concepts/results-db.md` for SQLite cache placement.
+- Quick Anthropic snippet before the model providers table in README.
+- "Tip" callout in README pointing first-time readers to `draft_prompt`.
+- GitHub repo link in README footer.
+
+### Changed
+
+- README sections reordered to lead with value props (Speed up, Cache, Batch API, Providers); `draft_prompt` moved below.
+- `## The batch path` renamed to `## Batch API: ~50% cheaper`.
+- README citation moved from near-top to dedicated bottom section.
+- 3-way SQLite schema duplication consolidated to one canonical home (`docs/concepts/results-db.md`).
+- `ignore_prompt_hash`, temp-cache workaround, and Gemini concurrent fallback snippets each consolidated to one canonical location.
+- Tutorial content moved out of Concepts pages: Resume-semantics flow moved to How-to; Temperature rules moved to Reference.
+- "house style" jargon in `draft_prompt` section replaced with explicit description.
+- `docs/reference/sqlite-cache.md` renamed to "Cache and chunking internals" (covers `DataFrameIterator` too).
+- Pydantic section in `docs/explanation/design-decisions.md` rephrased to lead with what the current design does.
+- How-to nav reordered: goal-oriented entries first; Resume and Troubleshooting last.
+- `mkdocs.yml`: `paths: [src/lmsyz_genai_ie_rfs]` changed to `paths: [src]` so mkdocstrings resolves correctly in clean CI runners.
+- `__all__` in `__init__.py` cleaned: `__version__` and `__paper__` removed (still accessible as module attributes).
+
+### Fixed
+
+- README quickstart code block: missing `import os` (would raise NameError on copy-paste).
+- `docs/how-to/batch-jobs.md` Anthropic block: `prompt` variable undefined (would raise NameError on copy-paste).
+- `retrieve_results_as_dataframe` examples: now guard `if out is None` before `.head()` (3 places).
+- `docs/how-to/batch-jobs.md`: OpenAI batch result retention corrected from 29 days to 7 days.
+
+---
+
 ## [0.1.2] - 2026-04-28
 
 ### Added

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lmsyz_genai_ie_rfs"
-version = "0.1.2"
+version = "0.1.3"
 description = "Concurrent and batch LLM extraction over a pandas DataFrame, no schema boilerplate."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -52,6 +52,8 @@ docs = [
 [project.urls]
 Paper = "https://doi.org/10.1093/rfs/hhaf081"
 Repository = "https://github.com/maifeng/lmsyz_genai_ie_rfs"
+Documentation = "https://maifeng.github.io/lmsyz_genai_ie_rfs/"
+Changelog = "https://github.com/maifeng/lmsyz_genai_ie_rfs/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]

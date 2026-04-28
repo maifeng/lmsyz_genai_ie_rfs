@@ -443,6 +443,10 @@ the automatic `print` and capture only the return value.
 
 ---
 
+## Documentation
+
+Full docs (concepts, how-to guides, API reference): https://maifeng.github.io/lmsyz_genai_ie_rfs/
+
 ## Citation
 
 If you find this library useful in your research, please cite:
