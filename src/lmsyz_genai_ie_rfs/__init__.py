@@ -23,7 +23,7 @@ from lmsyz_genai_ie_rfs.client import extract_df
 from lmsyz_genai_ie_rfs.dataframe import SqliteCache
 from lmsyz_genai_ie_rfs.draft_prompt import draft_prompt
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __paper__ = (
     "Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang. 2026. "

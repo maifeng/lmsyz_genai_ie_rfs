@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, please cite both the paper and the software itself."
 type: software
 title: "lmsyz_genai_ie_rfs"
-version: "0.1.0"
-date-released: "2026-04-12"
+version: "0.1.1"
+date-released: "2026-04-28"
 license: MIT
 url: "https://github.com/maifeng/lmsyz_genai_ie_rfs"
 
