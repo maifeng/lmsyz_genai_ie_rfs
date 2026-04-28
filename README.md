@@ -20,7 +20,7 @@ You want this DataFrame out:
 
 | input_id | entities | causal_triples | sentiment |
 |---|---|---|---|
-| 1 | `[{Apple CEO Tim Cook, PERSON}, {Apple, ORG}, {iPhone 17, PRODUCT}, {WWDC, DATE}, {June 2025, DATE}]` | `[]` | neutral |
+| 1 | `[{Tim Cook, PERSON}, {Apple, ORG}, {iPhone 17, PRODUCT}, {WWDC, EVENT}, {June 2025, DATE}]` | `[]` | neutral |
 | 2 | `[{Tesla, ORG}, {SolarCity, ORG}, {2016, DATE}, {$2.6 billion, MONEY}]` | `[]` | neutral |
 | 3 | `[{Pfizer, ORG}, {Trian Partners, ORG}]` | `[[activist pressure, drove, spin-off]]` | neutral |
 
@@ -37,34 +37,6 @@ out = extract_df(
 ```
 
 The full runnable code with the exact prompt is in the [90-second tour](#90-second-tour-entity--relation-extraction) below.
-
----
-
-## Why not call the API in a loop?
-
-Suppose you have 100,000 rows to classify and the average API call takes ~1 second.
-
-| Approach | API calls | Wall-clock time |
-|---|---|---|
-| One call per row, serial (what a loop looks like) | 100,000 | ~28 hours |
-| One call per row, 20 parallel workers | 100,000 | ~83 minutes |
-| **Batched** (5 rows packed per call), 20 workers | 20,000 | **~17 minutes** |
-| Aggressive (10 rows per call, 60 workers) | 10,000 | **~2.8 minutes** |
-
-Two independent speedups compose: **concurrent calls** (a thread pool hitting the API in parallel) and **batched prompting** (each call extracts from N rows at once, amortizing the shared system prompt). Overnight becomes lunch break.
-
-## What else you get
-
-- **Automatic resume on failure.** Every completed row is written to SQLite as it finishes. When an API times out, rate-limits you, or returns a 5xx, the library retries with exponential backoff. If the run dies altogether, rerun the same cell and only the unfinished rows are processed.
-- **Safe prompt edits.** The library remembers which prompt produced each row. Edit the prompt and rerun: affected rows are re-executed automatically.
-- **Three providers, one function call.** `backend="openai"` and `backend="anthropic"` are first class. Point `base_url=` at an OpenRouter endpoint and you also get Gemini, Qwen, DeepSeek, Llama, and anything else OpenRouter proxies. The same JSON schema file works on all of them.
-- **~50% cost reduction** when you can wait hours: wrap your job in `OpenAIBatchExtractor` or `AnthropicBatchExtractor` and submit via the provider's batch API.
-
----
-
-## Compared to GABRIEL
-
-[OpenAI's GABRIEL](https://github.com/openai/GABRIEL) solves an adjacent problem with a catalog of ~20 task-specific functions (`rate`, `classify`, `rank`, `extract`, `bucket`, ...). This library trades the catalog for a single function, `extract_df(prompt=...)`, so the mental model is: write a prompt, pick a model, run. We also target complex structured extraction (nested lists, causal triples, entity graphs) rather than scalar measurement (0-100 ratings, category labels, ELO ranks). Three practical differences: (a) this library packs N rows per API call (batched prompting), where GABRIEL parallelizes one call per row; (b) we wrap the OpenAI and Anthropic batch APIs for ~50% cheaper overnight jobs; (c) we support Anthropic and any OpenRouter-proxied model (Gemini, Qwen, DeepSeek, Llama) alongside OpenAI, where GABRIEL is OpenAI-only.
 
 ---
 
@@ -148,21 +120,7 @@ out = extract_df(
 print(out)
 ```
 
-Expected output (truncated for width):
-
-```
-  input_id                                           entities  \
-0        1  [{'name': 'Apple CEO Tim Cook', 'type': 'PERSON'}, {'name': 'Apple', 'type': 'ORG'}, {'name': 'iPhone 17', 'type': 'PRODUCT'}, {'name': 'WWDC', 'type': 'DATE'}, {'name': 'June 2025', 'type': 'DATE'}]
-1        2  [{'name': 'Tesla', 'type': 'ORG'}, {'name': 'SolarCity', 'type': 'ORG'}, {'name': '2016', 'type': 'DATE'}, {'name': '$2.6 billion', 'type': 'MONEY'}]
-2        3  [{'name': 'Pfizer', 'type': 'ORG'}, {'name': 'Trian Partners', 'type': 'ORG'}]
-
-                                         causal_triples  sentiment
-0                                                    []    neutral
-1                                                    []    neutral
-2   [['activist pressure from Trian Partners', 'drove', 'Pfizer spin off consumer health unit']]   neutral
-```
-
-Save the raw output:
+Save the result:
 
 ```python
 out.to_csv("extraction.csv", index=False)                          # lists/dicts as stringified cells
@@ -171,24 +129,46 @@ out.to_json("extraction.jsonl", orient="records", lines=True)      # round-trips
 
 ---
 
-## Two paths
+## Speed: `chunk_size` and `max_workers`
 
-| Path | When to use | Speed | Cost |
-|---|---|---|---|
-| `extract_df` (concurrent) | Thousands of rows, need results now | Seconds to minutes | Standard API price |
-| `OpenAIBatchExtractor` / `AnthropicBatchExtractor` | Tens of thousands of rows, can wait up to 24 hours | Hours | ~50% cheaper |
+These two arguments are how you scale a one-row demo to a hundred-thousand-row job.
 
-Module layout:
-
+```python
+out = extract_df(
+    df, prompt=...,
+    chunk_size=5,        # rows packed into one API call (amortizes the system prompt)
+    max_workers=20,      # API calls in flight at once (a thread pool)
+    backend="openai", model="gpt-4.1-mini",
+    cache_path="runs/big.sqlite",
+)
 ```
-src/lmsyz_genai_ie_rfs/
-├── client.py            extract_df + _call_openai + _call_anthropic
-├── batch.py             OpenAIBatchExtractor         (JSONL file upload)
-├── anthropic_batch.py   AnthropicBatchExtractor      (JSON body)
-├── dataframe.py         DataFrameIterator, SqliteCache, compute_prompt_hash
-├── retry.py             retry_api_call (tenacity)
-└── settings.py          Settings (pydantic-settings, reads .env)
-```
+
+The two speedups compose. With ~1 second per call and 100,000 rows:
+
+| Approach | API calls | Wall-clock time |
+|---|---|---|
+| One row per call, serial (a plain `for` loop) | 100,000 | ~28 hours |
+| One row per call, `max_workers=20` | 100,000 | ~83 minutes |
+| `chunk_size=5`, `max_workers=20` | 20,000 | **~17 minutes** |
+| `chunk_size=10`, `max_workers=60` | 10,000 | **~2.8 minutes** |
+
+**Tuning:**
+
+- **`chunk_size`** — start at 5. Smaller chunks parallelize better and limit blast radius if one chunk's JSON is malformed. Larger chunks (10–20) amortize the system prompt better, especially with Anthropic prompt caching. Past ~30 the model starts truncating or skipping rows.
+- **`max_workers`** — start at 20. Raise it until the log shows rate-limit retries. OpenAI tier-3 accounts comfortably handle 60–100; Anthropic tier-2 handles 20–50. If you start hitting HTTP 429, drop it.
+
+Need it ~50% cheaper and can wait hours instead of minutes? See [the batch path](#the-batch-path-when-you-have-a-lot-of-rows) below.
+
+---
+
+## Resilience: cache + prompt hashing
+
+Two things you get without doing anything:
+
+- **Resume on failure.** Every completed row is written to SQLite as it finishes. When an API times out, rate-limits you, or returns a 5xx, the library retries with exponential backoff. If the run dies altogether, rerun the same cell and only the unfinished rows are processed.
+- **Safe prompt edits.** The library remembers which prompt produced each row (a 16-char hash). Edit the prompt and rerun: affected rows are re-executed automatically.
+
+Details: [The results DB](#the-results-db-cache_path).
 
 ---
 
@@ -268,6 +248,8 @@ out = extract_df(
 )
 ```
 
+For OpenRouter (Llama, Mistral, DeepSeek, Qwen, ...): same pattern with `base_url="https://openrouter.ai/api/v1"` and `api_key=os.environ["OPENROUTER_API_KEY"]`.
+
 ---
 
 ## The results DB (cache_path)
@@ -296,15 +278,19 @@ Force a full re-run ignoring the DB: `fresh=True`.
 
 ### What if I change the prompt?
 
-Each cached row is stamped with a hash of the prompt that produced it. On rerun, rows whose stamp matches the current prompt are skipped; rows stamped with a different prompt are re-executed. Edit a word in the prompt and rerun: all rows go through the model again, automatically.
+Each cached row is stamped with `sha256(prompt)[:16]`. On rerun, rows whose stamp matches the current prompt are skipped; rows stamped with a different prompt are re-executed and **the old row is overwritten** (`INSERT OR REPLACE` on `row_id`).
 
-Escape hatch: pass `ignore_prompt_hash=True` to reuse cached rows regardless of which prompt produced them. Useful for a typo fix or whitespace change where the semantics are unchanged.
+Three escape hatches:
+
+- Want to compare prompts side by side? Use **a different `cache_path`** for each prompt version. Each file keeps its own copy.
+- Fixed a typo and want to keep the cached rows? Pass `ignore_prompt_hash=True`. The library reuses the existing rows even though the hash differs.
+- Want to wipe and redo? `fresh=True`, or delete the `.sqlite` file.
 
 ---
 
 ## The batch path (when you have a lot of rows)
 
-The batch API is ~50% cheaper per token but asynchronous. You submit a blob, the provider works through it, you collect results up to 24 hours later.
+The batch API is ~50% cheaper per token but asynchronous. You submit a blob, the provider works through it, you collect results up to 24 hours later. Use it when the savings matter and the wait does not.
 
 ### OpenAI batch
 
@@ -321,7 +307,7 @@ ext.create_batch_jsonl(               # 1. write JSONL input files
 )
 ext.submit_batches("my_job")          # 2. upload + submit
 ext.check_batch_status("my_job",      # 3. poll
-                       continuous=True, check_interval=60)
+                       continuous=True, interval=60)
 out = ext.retrieve_results_as_dataframe("my_job")   # 4. results as DataFrame
 ```
 
@@ -343,7 +329,7 @@ Every intermediate file (JSONL input, submission manifest, raw results) is on di
 
 ---
 
-## Knobs worth knowing
+## All knobs
 
 ```python
 extract_df(
@@ -371,10 +357,6 @@ Retries are automatic (tenacity, exponential backoff, up to 5 attempts) for rate
 
 ## FAQ
 
-**Which chunk size?** Start at 5. Smaller chunks parallelize better across workers and reduce blast radius on a bad chunk. Larger chunks amortize the system prompt better, especially with Anthropic caching. For very long prompts at scale, try 10-20.
-
-**Which `max_workers`?** Whatever your provider's rate limit allows. OpenAI tier-3 accounts comfortably handle 60-100. Anthropic tier-2 handles 20-50. Start at 20 and raise if the log shows no rate-limit retries.
-
 **Why does my DataFrame have fewer rows than I expect?** A chunk failed. Check the log for the stack trace. Nothing is silently swallowed.
 
 **How do I restart a batch job when I lost the `job_id`?** Look under `batch_root_dir/`. The directories ARE the `job_id`s.
@@ -388,7 +370,7 @@ Retries are automatic (tenacity, exponential backoff, up to 5 attempts) for rate
 ## Development
 
 ```bash
-git clone https://github.com/feng-mai/lmsyz_genai_ie_rfs
+git clone https://github.com/maifeng/lmsyz_genai_ie_rfs
 cd lmsyz_genai_ie_rfs
 pip install -e ".[dev]"
 pytest                               # offline tests, no keys needed
@@ -406,17 +388,6 @@ mkdocs serve                         # http://localhost:8000
 Test artifacts land in `test_artifacts/<test_name>/` (gitignored).
 
 ---
-
-## Origin
-
-Originally built for:
-
-> Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang (2026).
-> "Dissecting Corporate Culture Using Generative AI."
-> *Review of Financial Studies* 39(1):253–296.
-> [doi.org/10.1093/rfs/hhaf081](https://doi.org/10.1093/rfs/hhaf081)
-
-The framework itself has no knowledge of corporate culture, finance, or any particular domain. It is a general-purpose information-extraction tool. Bring your own prompt.
 
 ## License
 

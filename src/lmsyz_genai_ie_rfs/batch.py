@@ -160,13 +160,12 @@ class OpenAIBatchExtractor:
                 done_ids = set(prior.iloc[:, 0].astype(str))
                 before = len(dataframe)
                 dataframe = dataframe[~dataframe[id_col].astype(str).isin(done_ids)]
-                log.info(
-                    "Excluded %d already-processed rows; %d remain.",
-                    before - len(dataframe),
-                    len(dataframe),
+                print(
+                    f"Excluded {before - len(dataframe)} already-processed rows; "
+                    f"{len(dataframe)} remain."
                 )
             else:
-                log.info("No prior results found in %s.", output_dir)
+                print(f"No prior results found in {output_dir}.")
 
         # Shuffle for better load distribution across workers.
         dataframe = dataframe.sample(frac=1, random_state=1).reset_index(drop=True)
@@ -230,7 +229,7 @@ class OpenAIBatchExtractor:
         with open(path, "w") as fh:
             for item in data:
                 fh.write(json.dumps(item) + "\n")
-        log.info("Wrote %d requests to %s.", len(data), path)
+        print(f"Wrote {len(data)} requests to {path}.")
 
     def submit_batches(self, job_id: str) -> None:
         """Upload JSONL files and submit each as an OpenAI Batch job.
@@ -255,7 +254,7 @@ class OpenAIBatchExtractor:
 
             manifest = output_dir / f"submission_{submission.id}.json"
             manifest.write_text(json.dumps(submission.model_dump()))
-            log.info("Submitted %s as batch %s.", batch_file.name, submission.id)
+            print(f"Submitted {batch_file.name} as batch {submission.id}.")
 
     def check_batch_status(
         self,
@@ -289,11 +288,9 @@ class OpenAIBatchExtractor:
 
                 status = self.client.batches.retrieve(batch_id)
                 counts = (status.model_dump().get("request_counts") or {})
-                log.info(
-                    "Batch %s: %s/%s completed.",
-                    batch_id,
-                    counts.get("completed", "?"),
-                    counts.get("total", "?"),
+                print(
+                    f"Batch {batch_id}: "
+                    f"{counts.get('completed', '?')}/{counts.get('total', '?')} completed."
                 )
 
                 if status.error_file_id:
@@ -304,19 +301,19 @@ class OpenAIBatchExtractor:
                 elif status.completed_at is not None:
                     raw = self.client.files.content(status.model_dump()["output_file_id"]).content
                     result_path.write_bytes(raw)
-                    log.info("Results for batch %s written to %s.", batch_id, result_path)
+                    print(f"Results for batch {batch_id} written to {result_path}.")
                     done += 1
                 elif status.status == "finalizing":
-                    log.info("Batch %s is finalizing.", batch_id)
+                    print(f"Batch {batch_id} is finalizing.")
                 else:
-                    log.info("Batch %s is still in progress.", batch_id)
+                    print(f"Batch {batch_id} is still in progress.")
 
             if not continuous or done == len(manifests):
                 if done == len(manifests):
-                    log.info("All %d batches complete.", done)
+                    print(f"All {done} batches complete.")
                 break
 
-            log.info("Waiting %d s before next poll.", interval)
+            print(f"Waiting {interval}s before next poll.")
             time.sleep(interval)
 
     def retrieve_results_as_dataframe(self, job_id: str) -> Optional[pd.DataFrame]:

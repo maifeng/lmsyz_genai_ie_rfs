@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lmsyz_genai_ie_rfs"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Concurrent and batch LLM calls on a pandas DataFrame with Pydantic-typed outputs."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -51,7 +51,7 @@ docs = [
 
 [project.urls]
 Paper = "https://doi.org/10.1093/rfs/hhaf081"
-Repository = "https://github.com/feng-mai/lmsyz_genai_ie_rfs"
+Repository = "https://github.com/maifeng/lmsyz_genai_ie_rfs"
 
 [tool.setuptools.packages.find]
 where = ["src"]

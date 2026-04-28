@@ -283,14 +283,13 @@ def extract_df(
         if done:
             before = len(working)
             working = working[~working[id_col].astype(str).isin(done)]
-            log.info(
-                "SqliteCache: skipping %d / %d rows (prompt_hash=%s).",
-                before - len(working), before,
-                "any" if ignore_prompt_hash else phash,
+            print(
+                f"SqliteCache: skipping {before - len(working)} / {before} rows "
+                f"(prompt_hash={'any' if ignore_prompt_hash else phash})."
             )
 
     if working.empty:
-        log.info("extract_df: all rows cached; returning from cache.")
+        print("extract_df: all rows cached; returning from cache.")
         rows = [cache.get(str(rid), prompt_hash=lookup_hash) for rid in df[id_col].astype(str)]
         return pd.DataFrame([r for r in rows if r is not None])
 

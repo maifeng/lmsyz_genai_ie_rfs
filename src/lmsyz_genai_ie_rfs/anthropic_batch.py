@@ -165,7 +165,7 @@ class AnthropicBatchExtractor:
 
         path = input_dir / "requests.json"
         path.write_text(json.dumps(requests, indent=2))
-        log.info("Wrote %d Anthropic batch requests to %s.", len(requests), path)
+        print(f"Wrote {len(requests)} Anthropic batch requests to {path}.")
         return path
 
     def submit_batch(self, job_id: str) -> str:
@@ -184,7 +184,7 @@ class AnthropicBatchExtractor:
         batch = self.client.messages.batches.create(requests=requests)
         manifest = job_dir / "batch_input" / "submission.json"
         manifest.write_text(batch.model_dump_json(indent=2))
-        log.info("Submitted Anthropic batch %s (%d requests).", batch.id, len(requests))
+        print(f"Submitted Anthropic batch {batch.id} ({len(requests)} requests).")
         return batch.id
 
     def check_batch_status(
@@ -223,11 +223,8 @@ class AnthropicBatchExtractor:
         while True:
             batch = self.client.messages.batches.retrieve(batch_id)
             counts = batch.request_counts.model_dump()
-            log.info(
-                "Anthropic batch %s: status=%s counts=%s",
-                batch_id,
-                batch.processing_status,
-                counts,
+            print(
+                f"Anthropic batch {batch_id}: status={batch.processing_status} counts={counts}"
             )
             if batch.processing_status in ("ended", "canceling"):
                 return batch.processing_status
