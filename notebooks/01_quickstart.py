@@ -451,42 +451,27 @@ draft_prompt(
 # %% [markdown]
 # ## 11. Your turn: extraction exercise (breakout)
 #
-# The pattern works for *any* structured extraction. Below is a 3-row
-# DataFrame of business news. Your job: write a prompt that turns the
-# input into the output shown.
+# Same Glassdoor reviews, **different question**. Earlier we extracted
+# culture type, tone, and aspects. Now your turn: pull out career and
+# compensation signals from the same `demo` rows.
 #
-# **Input**
+# **Target fields** (one row per review)
 #
-# | id | text |
-# |----|------|
-# | 1 | Apple CEO Tim Cook announced the iPhone 17 at WWDC in June 2025. |
-# | 2 | Tesla acquired SolarCity in 2016 for $2.6 billion to enter the solar market. |
-# | 3 | Pfizer's decision to spin off its consumer health unit was driven by activist pressure from Trian Partners. |
+# | field | type | description |
+# |-------|------|-------------|
+# | `input_id` | int | copy `review_id` verbatim |
+# | `career_growth_score` | int 1-5 | 1 = stuck or no growth mentioned, 5 = strong growth signals |
+# | `compensation_signal` | enum | `above_market` / `at_market` / `below_market` / `not_mentioned` |
+# | `role_or_department` | str or null | specific role/team if mentioned, else null |
+# | `biggest_complaint` | str or null | a phrase quoted from the text, or null if none |
 #
-# **Target output**
+# Fill in `MY_PROMPT` and run on the same 20-row `demo`. Compare with
+# your breakout group: do you agree on `career_growth_score` for the
+# borderline reviews?
 #
-# | input_id | entities                                                                                          | causal_triples                                   | sentiment |
-# |----------|---------------------------------------------------------------------------------------------------|--------------------------------------------------|-----------|
-# | 1        | `[{Tim Cook, PERSON}, {Apple, ORG}, {iPhone 17, PRODUCT}, {WWDC, EVENT}, {June 2025, DATE}]`      | `[]`                                             | neutral   |
-# | 2        | `[{Tesla, ORG}, {SolarCity, ORG}, {2016, DATE}, {$2.6 billion, MONEY}]`                           | `[]`                                             | neutral   |
-# | 3        | `[{Pfizer, ORG}, {Trian Partners, ORG}]`                                                          | `[["activist pressure", "drove", "spin-off"]]`   | neutral   |
-#
-# Fill in `MY_PROMPT` and run. Compare with your breakout group.
-#
-# Stuck? See `draft_prompt(goal=...)` in §10b above.
+# Stuck? See `draft_prompt(goal=...)` in §10b above for a starting move.
 
 # %%
-news = pd.DataFrame(
-    {
-        "id": [1, 2, 3],
-        "text": [
-            "Apple CEO Tim Cook announced the iPhone 17 at WWDC in June 2025.",
-            "Tesla acquired SolarCity in 2016 for $2.6 billion to enter the solar market.",
-            "Pfizer's decision to spin off its consumer health unit was driven by activist pressure from Trian Partners.",
-        ],
-    }
-)
-
 MY_PROMPT = """\
 For each input row, ...   # TODO: write your prompt here
 
@@ -496,11 +481,11 @@ per-row results.
 
 # %%
 my_out = extract_df(
-    news,
+    demo,
     prompt=MY_PROMPT,
     backend="openai",
     model="gpt-4.1-mini",
-    id_col="id",
+    id_col="review_id",
     text_col="text",
     cache_path="my_extraction.sqlite",
     chunk_size=5,
