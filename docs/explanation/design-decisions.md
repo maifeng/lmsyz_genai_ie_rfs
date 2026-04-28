@@ -26,16 +26,7 @@ A researcher running 100,000 rows for two hours should never accidentally skip p
 
 This mirrors `gpt_funcs.py:run_gpt_on_df` where the equivalent `db_path` was also required. The original authors made this choice deliberately, and it was preserved here.
 
-If you genuinely do not want a persistent file, pass a temporary path and clean it up after:
-
-```python
-import uuid, os
-from lmsyz_genai_ie_rfs import extract_df
-
-cache = f"/tmp/ephemeral_{uuid.uuid4()}.sqlite"
-out = extract_df(df, prompt=..., cache_path=cache, backend="openai", model="gpt-4.1-mini")
-os.unlink(cache)
-```
+If you genuinely do not want a persistent file, pass a temporary path and delete it after the call. See [Troubleshooting: I do not want the SQLite file](../how-to/troubleshooting.md#i-do-not-want-the-sqlite-file) for the pattern.
 
 ---
 
@@ -140,6 +131,6 @@ The default of 5 is biased toward the safer, more-parallel end of this trade-off
 
 The library uses `pydantic-settings` internally to load `.env` files. That is the only Pydantic dependency from your perspective: it is transitive, handled by the library, and does not require you to write Pydantic classes.
 
-Schemas for structured output are plain JSON dicts or JSON files. A user opening `tests/data/culture_batch_schema.json` sees a standard JSON schema, not a Python class. Same file works on both OpenAI (as `response_format`) and Anthropic (as forced `tool_use` `input_schema`).
+Schemas for structured output are plain JSON dicts or JSON files. A user opening `tests/data/culture_batch_schema.json` sees a standard JSON schema. The same file works on both OpenAI (as `response_format`) and Anthropic (as forced `tool_use` `input_schema`), with no Python class definitions required in either case.
 
-An earlier version of this library required users to define a `BaseModel` subclass per extraction task. That design was rejected because it duplicated the prompt's shape description in a second language. The current design makes Pydantic an implementation detail you never touch.
+The current design makes Pydantic an implementation detail you never touch. Earlier iterations explored requiring a `BaseModel` subclass per extraction task, but that path duplicated the prompt's shape description in a second language. A JSON file or dict keeps the schema in one place and one format.

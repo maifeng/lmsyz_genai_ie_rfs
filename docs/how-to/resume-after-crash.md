@@ -132,15 +132,32 @@ the job. Every row is written to the file the moment it completes, so partial pr
 never lost. The file is a plain SQLite database; you can open it in any SQLite browser,
 `DB Browser for SQLite`, or from Python with the standard `sqlite3` module.
 
-The three-column schema is:
+The two-run lifecycle looks like this:
 
-```sql
-results(row_id TEXT PRIMARY KEY, json_result TEXT, prompt_hash TEXT)
+```mermaid
+flowchart TB
+    subgraph run1 ["Run 1: interrupted at row 600 / 1000"]
+        START1[1000 rows] --> CALL1["extract_df processes rows 1-600\nbefore crash"]
+        CALL1 --> CACHE1[(SQLite: 600 rows written)]
+    end
+    subgraph run2 ["Run 2: same cache_path, same prompt"]
+        START2[1000 rows] --> READ["SqliteCache.all_ids\n(prompt_hash=current hash)"]
+        READ --> FILTER["filter: remove 600 cached row_ids\nworking set = 400 rows"]
+        FILTER --> CALL2["extract_df processes 400 rows"]
+        CALL2 --> CACHE2[(SQLite: 1000 rows total)]
+        CACHE2 --> MERGE["merge: 400 new + 600 cached"]
+        MERGE --> OUT[DataFrame: 1000 rows]
+    end
 ```
 
-`row_id` is the string form of the value in `id_col`. `json_result` is the raw dict
-returned by the model, serialised as JSON. `prompt_hash` is a 16-character hex digest of
-the prompt (SHA-256 truncated); see the next how-to for how that gating works.
+After run 2, the returned DataFrame has all 1,000 rows without re-spending tokens on the
+600 that already completed.
+
+See [the schema in concepts/results-db.md](../concepts/results-db.md#schema) for the full
+DDL. In brief: `row_id` is the primary key (string form of `id_col`), `json_result` is
+the model output serialised as JSON, and `prompt_hash` is a 16-character SHA-256 hex
+digest of the prompt. See [Change the prompt safely](change-prompt-safely.md) for how
+that gating works.
 
 When `extract_df` starts, it calls `SqliteCache.all_ids(prompt_hash=current_hash)` to
 get the set of IDs already cached under the current prompt. It removes those rows from

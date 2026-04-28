@@ -65,17 +65,17 @@ nav:
       - Prompts and schemas: concepts/prompts-and-schemas.md
       - Results database: concepts/results-db.md
   - How-to:
-      - Resume after a crash: how-to/resume-after-crash.md
-      - Change the prompt safely: how-to/change-prompt-safely.md
-      - Switch providers: how-to/switch-providers.md
       - Run a batch job: how-to/batch-jobs.md
+      - Switch providers: how-to/switch-providers.md
       - Inspect the results database: how-to/inspect-results-db.md
+      - Change the prompt safely: how-to/change-prompt-safely.md
+      - Resume after a crash: how-to/resume-after-crash.md
       - Troubleshooting: how-to/troubleshooting.md
   - Reference:
       - extract_df: reference/extract_df.md
       - draft_prompt: reference/draft_prompt.md
       - Batch extractors: reference/batch-extractors.md
-      - SqliteCache: reference/sqlite-cache.md
+      - Cache and chunking internals: reference/sqlite-cache.md
       - Settings: reference/settings.md
   - Explanation:
       - Design decisions: explanation/design-decisions.md

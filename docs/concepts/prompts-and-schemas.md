@@ -215,21 +215,6 @@ This happens automatically. You do not need to configure anything. The same bloc
 
 ---
 
-## Temperature rules
-
-The `_requires_temp_one` function in both `client.py` and `batch.py` returns `True` for model families that only accept `temperature=1.0`:
-
-| Model family | Temperature enforced |
-|---|---|
-| `o1`, `o1-mini`, `o1-preview`, ... | 1.0 |
-| `o3`, `o3-mini`, ... | 1.0 |
-| `gpt-5`, `gpt-5-mini`, ... | 1.0 |
-| Everything else | 0.0 (deterministic) |
-
-The check is based on the model name string: `lower.startswith(("o1", "o3"))` or `"gpt-5" in lower`. All other models get `temperature=0.0`, which maximizes determinism. You cannot override this in the concurrent path; it is automatic. In the batch path, `create_batch_jsonl` accepts a `temperature` argument but overrides it to 1.0 for the affected families.
-
----
-
 ## Tips for prompt writing in this framework
 
 **Always ask for `all_results`.** Every response parser in the library (`_call_openai`, `_call_anthropic`, `retrieve_results_as_dataframe`) looks for `all_results` first, then falls back to `results`. Use `all_results` in your prompt to stay on the happy path:

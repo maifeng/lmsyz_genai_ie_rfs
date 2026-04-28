@@ -1,6 +1,6 @@
-# SqliteCache
+# Cache and chunking internals
 
-This page documents the small helpers under `lmsyz_genai_ie_rfs.dataframe`. Two concerns live together here: **caching** (the SQLite-backed results store that makes `extract_df` resumable) and **chunking** (the iterator that splits a DataFrame into per-call input blocks).
+This page documents the small helpers under `lmsyz_genai_ie_rfs.dataframe`. Two concerns live together here: **caching** (`SqliteCache`, the SQLite-backed results store that makes `extract_df` resumable) and **chunking** (`DataFrameIterator`, the iterator that splits a DataFrame into per-call input blocks).
 
 For a conceptual walkthrough of the results database, see [Results database](../concepts/results-db.md). For hands-on inspection of a live cache file, see [Inspect the results database](../how-to/inspect-results-db.md).
 

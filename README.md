@@ -6,9 +6,7 @@ A general-purpose library for **prompt-based information extraction over DataFra
 [![PyPI version](https://img.shields.io/pypi/v/lmsyz_genai_ie_rfs.svg)](https://pypi.org/project/lmsyz_genai_ie_rfs/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-If you find this library useful in your research, please cite:
-
-Li, Mai, Shen, Yang, Zhang (2026), "Dissecting Corporate Culture Using Generative AI," *Review of Financial Studies* 39(1):253–296, [doi.org/10.1093/rfs/hhaf081](https://doi.org/10.1093/rfs/hhaf081).
+Cite as: Li, Mai, Shen, Yang, Zhang (2026), RFS. Full citation and BibTeX at the [bottom of this page](#citation).
 
 ---
 
@@ -122,7 +120,7 @@ out.to_csv("extraction.csv", index=False)
 
 ## Drafting a prompt with `draft_prompt`
 
-Pass a sentence describing what you want to extract; `draft_prompt` returns a candidate prompt in the house style for you to edit:
+Pass a sentence describing what you want to extract; `draft_prompt` returns a candidate prompt in the package's standard structure (a numbered field list followed by a `{"all_results": [...]}` JSON envelope) for you to edit:
 
 ```python
 import os
@@ -295,6 +293,13 @@ The same file works on Anthropic: the library extracts the inner `schema` object
 
 Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting `base_url=`. The same `extract_df` call shape works for all of them; only `model`, `base_url`, and `api_key` change.
 
+To switch to Anthropic, change `backend` and `model`:
+
+```python
+out = extract_df(df, prompt=prompt, cache_path="run.sqlite",
+                 backend="anthropic", model="claude-3-5-sonnet-20241022")
+```
+
 | Capability | OpenAI | Anthropic | OpenAI-compatible<br/>(OpenRouter, Gemini, Together, vLLM, ...) |
 |---|---|---|---|
 | Concurrent, no schema     | yes: `json_object`            | yes: plain text (parsed tolerantly) | model-dependent |
@@ -372,6 +377,10 @@ ext.create_batch_requests(..., schema_dict=my_schema)
 ext.submit_batch("my_job")
 ext.check_batch_status("my_job", continuous=True)
 out = ext.retrieve_results_as_dataframe("my_job")
+if out is None:
+    print("Batch not finished yet; check status and retry.")
+else:
+    print(out.head())
 ```
 
 All intermediate files (JSONL input, submission manifest, raw results) are written under `batch_root_dir/<job_id>/` and can be inspected directly.
@@ -431,6 +440,29 @@ the automatic `print` and capture only the return value.
 **What about nested lists and dicts in the output?** Flatten with `df.explode("entities")` (each list item becomes its own row), followed by `pd.json_normalize(df["entities"])` (each dict's keys become columns). CSV stringifies nested fields; save as JSONL (`df.to_json(..., orient="records", lines=True)`) for clean round-tripping.
 
 ---
+
+## Citation
+
+If you find this library useful in your research, please cite:
+
+Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang (2026). "Dissecting Corporate Culture Using Generative AI." *Review of Financial Studies* 39(1):253–296. [doi.org/10.1093/rfs/hhaf081](https://doi.org/10.1093/rfs/hhaf081).
+
+```bibtex
+@article{li2026dissecting,
+  title   = {Dissecting Corporate Culture Using Generative {AI}},
+  author  = {Li, Kai and Mai, Feng and Shen, Rui and Yang, Chelsea and Zhang, Tengfei},
+  journal = {Review of Financial Studies},
+  volume  = {39},
+  number  = {1},
+  pages   = {253--296},
+  year    = {2026},
+  doi     = {10.1093/rfs/hhaf081},
+}
+```
+
+## GitHub
+
+Source code: [https://github.com/maifeng/lmsyz_genai_ie_rfs](https://github.com/maifeng/lmsyz_genai_ie_rfs)
 
 ## License
 

@@ -58,8 +58,11 @@ ext.check_batch_status("my_job", continuous=True, interval=300)
 
 # Step 4: parse results into a DataFrame.
 out = ext.retrieve_results_as_dataframe("my_job")
-print(out.head())
-out.to_csv("runs/openai_output.csv", index=False)
+if out is None:
+    print("Batch not finished yet; check status and retry.")
+else:
+    print(out.head())
+    out.to_csv("runs/openai_output.csv", index=False)
 ```
 
 ### Anthropic batch (JSON body, no file upload)
@@ -109,8 +112,11 @@ print("Final status:", status)   # "ended" on success
 
 # Step 4: stream results and assemble into a DataFrame.
 out = ext.retrieve_results_as_dataframe("my_job")
-print(out.head())
-out.to_csv("runs/anthropic_output.csv", index=False)
+if out is None:
+    print("Batch not finished yet; check status and retry.")
+else:
+    print(out.head())
+    out.to_csv("runs/anthropic_output.csv", index=False)
 ```
 
 ## Explanation
@@ -190,7 +196,7 @@ ext = OpenAIBatchExtractor(
 | File upload required | Yes (`client.files.create`) | No |
 | Schema enforcement | `response_format` (`json_schema`) | `tool_use` (`input_schema`) |
 | Max requests per batch | 50,000 (200 MB input limit) | 100,000 (256 MB) |
-| Result retention | 29 days | 29 days |
+| Result retention | 7 days | 29 days |
 | Polling | `check_batch_status(interval=300)` | `check_batch_status(interval=20)` |
 | Timeout control | Manual (poll loop) | `timeout=` parameter |
 | Gemini batch support | Hybrid SDK required (not wrapped) | N/A |
@@ -199,26 +205,9 @@ ext = OpenAIBatchExtractor(
 
 Gemini's OpenAI-compat endpoint supports `batches.create`, but the file upload step
 requires the native `google-generativeai` SDK. Because of this hybrid requirement,
-`OpenAIBatchExtractor` does not support Gemini out of the box. Use the concurrent
-`extract_df` path for Gemini:
-
-```python
-from lmsyz_genai_ie_rfs import extract_df
-import os
-
-out = extract_df(
-    df,
-    prompt=prompt,
-    cache_path="runs/gemini.sqlite",
-    model="gemini-2.5-flash",
-    backend="openai",
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-    api_key=os.environ["GEMINI_API_KEY"],
-)
-```
-
-The concurrent path with `max_workers=20` handles large volumes well and persists every
-row to SQLite as it completes, so a crash still loses nothing.
+`OpenAIBatchExtractor` does not support Gemini out of the box. Use the concurrent path
+instead. See [Switch providers: Gemini via OpenAI-compatible endpoint](switch-providers.md#3-gemini-via-openai-compatible-endpoint)
+for the full example.
 
 ## Related
 

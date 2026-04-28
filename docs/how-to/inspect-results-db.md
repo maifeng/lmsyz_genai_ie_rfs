@@ -48,15 +48,8 @@ with sqlite3.connect(DB) as con:
 
 ### Schema
 
-The table has exactly three columns:
-
-```sql
-CREATE TABLE results (
-    row_id      TEXT PRIMARY KEY,
-    json_result TEXT NOT NULL,
-    prompt_hash TEXT
-);
-```
+See [the schema in concepts/results-db.md](../concepts/results-db.md#schema) for the
+full DDL and column descriptions.
 
 `row_id` is the string form of the value in `id_col`. `json_result` is the row dict
 returned by the model, serialised as JSON. `prompt_hash` is a 16-character SHA-256

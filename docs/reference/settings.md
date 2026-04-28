@@ -6,8 +6,11 @@
 
 ## Environment variables and .env
 
-All `Settings` fields map directly to environment variables of the same name
-(case-insensitive). Set them in the shell or drop a `.env` file in the working directory:
+All `Settings` fields map directly to environment variables of the same name.
+`pydantic-settings` is configured with `case_sensitive=False`, so the env var
+`DEFAULT_MODEL` binds to the `default_model` attribute; upper-case env var names and
+lower-case attribute names are equivalent. Set them in the shell or drop a `.env` file in
+the working directory:
 
 ```bash
 # .env
