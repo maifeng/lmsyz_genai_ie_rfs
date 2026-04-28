@@ -38,12 +38,10 @@ import os
 # os.environ["OPENAI_API_KEY"] = "sk-..."   # uncomment and paste
 
 # %% [markdown]
-# ## 3. Three rows in, structured DataFrame out
+# ## 3. Build the input DataFrame
 
 # %%
 import pandas as pd
-
-from lmsyz_genai_ie_rfs import extract_df
 
 df = pd.DataFrame(
     {
@@ -55,7 +53,12 @@ df = pd.DataFrame(
         ],
     }
 )
+df
 
+# %% [markdown]
+# ## 4. Write the extraction prompt
+
+# %%
 prompt = """
 For each input row, extract:
 - input_id: copy the id verbatim.
@@ -65,6 +68,12 @@ For each input row, extract:
 
 Return a JSON object: {"all_results": [<one object per row>]}.
 """
+
+# %% [markdown]
+# ## 5. Run the extraction
+
+# %%
+from lmsyz_genai_ie_rfs import extract_df
 
 out = extract_df(
     df,
@@ -79,3 +88,23 @@ out = extract_df(
     api_key=os.environ["OPENAI_API_KEY"],
 )
 out
+
+# %% [markdown]
+# ## 6. Explode the entities column
+#
+# Each row's `entities` field is a list of `{name, type}` dicts. Use
+# `df.explode` to turn each list into multiple rows (one entity per row).
+
+# %%
+flat = out.explode("entities", ignore_index=True)
+flat
+
+# %% [markdown]
+# Then `pd.json_normalize` flattens each dict's keys into separate columns.
+
+# %%
+flat = pd.concat(
+    [flat.drop(columns="entities"), pd.json_normalize(flat["entities"])],
+    axis=1,
+)
+flat
