@@ -24,6 +24,7 @@ Set at least one provider key (or drop them in a `.env` file next to your notebo
 import os
 os.environ["OPENAI_API_KEY"] = "sk-..."
 # os.environ["ANTHROPIC_API_KEY"] = "sk-ant-..."
+# os.environ["OPENROUTER_API_KEY"] = "sk-or-..."
 ```
 
 ---
@@ -245,33 +246,47 @@ The same file works on Anthropic: the library extracts the inner `schema` object
 
 ---
 
-## Provider support
+## Model providers
 
-| Capability | OpenAI | Anthropic | Gemini (via OpenAI compat) |
+Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting `base_url=`. The same `extract_df` call shape works for all of them; only `model`, `base_url`, and `api_key` change.
+
+| Capability | OpenAI | Anthropic | OpenAI-compatible<br/>(OpenRouter, Gemini, Together, vLLM, ...) |
 |---|---|---|---|
-| Concurrent, with schema   | yes: structured outputs | yes: `tool_use` + prompt caching | yes: structured outputs |
-| Concurrent, no schema     | yes: `json_object` | yes: plain text (parsed tolerantly) | yes: `json_object` |
-| Batch API (~50% cheaper)  | yes: `OpenAIBatchExtractor` | yes: `AnthropicBatchExtractor` | partial: native SDK needed for upload |
+| Concurrent, no schema     | yes: `json_object`            | yes: plain text (parsed tolerantly) | model-dependent |
+| Concurrent, with schema   | yes: structured outputs       | yes: `tool_use` + prompt caching    | model-dependent (gateway forwards `response_format`) |
+| Batch API (~50% cheaper)  | yes: `OpenAIBatchExtractor`   | yes: `AnthropicBatchExtractor`      | use the gateway's native batch API |
+| Long-prompt caching       | automatic (1024+ tokens)      | explicit `cache_control` on system  | upstream-model-dependent |
 
-Gemini and OpenRouter speak the OpenAI chat-completions API, so you reach them by setting `base_url=`:
+### OpenRouter: one key, hundreds of models
+
+OpenRouter is a gateway: a single key + base_url puts you in front of Llama, Mistral, DeepSeek, Qwen, Gemini, Claude, and many more. Swap `model=` for whichever you want.
 
 ```python
-# Gemini
+out = extract_df(
+    df, prompt=my_prompt,
+    backend="openai",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    model="qwen/qwen-2.5-72b-instruct",          # Qwen
+    # model="deepseek/deepseek-chat",            # DeepSeek
+    # model="meta-llama/llama-3.3-70b-instruct", # Llama
+    # model="mistralai/mistral-large",           # Mistral
+    # model="anthropic/claude-haiku-4.5",        # Claude (proxied)
+    cache_path="openrouter.sqlite",
+)
+```
+
+JSON-mode support varies by model on OpenRouter. If a model returns malformed JSON, switch to one that supports `response_format`, or pass a strict `schema=` so the gateway routes via JSON-schema mode.
+
+### Gemini direct
+
+```python
 out = extract_df(
     df, prompt=my_prompt,
     backend="openai", model="gemini-2.5-flash",
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
     api_key=os.environ["GEMINI_API_KEY"],
     cache_path="gemini.sqlite",
-)
-
-# OpenRouter (Llama, Mistral, DeepSeek, Qwen, ...)
-out = extract_df(
-    df, prompt=my_prompt,
-    backend="openai", model="meta-llama/llama-3.3-70b-instruct",
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPENROUTER_API_KEY"],
-    cache_path="llama.sqlite",
 )
 ```
 
