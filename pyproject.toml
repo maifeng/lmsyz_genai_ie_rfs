@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lmsyz_genai_ie_rfs"
-version = "0.1.1"
-description = "Concurrent and batch LLM calls on a pandas DataFrame with Pydantic-typed outputs."
+version = "0.1.2"
+description = "Concurrent and batch LLM extraction over a pandas DataFrame, no schema boilerplate."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"

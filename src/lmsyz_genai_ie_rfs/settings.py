@@ -22,7 +22,7 @@ class Settings(BaseSettings):
         default_model: Model identifier used when no model is specified explicitly.
         default_backend: Backend name to use by default. Either "openai" or "anthropic".
         openai_base_url: Optional custom base URL for the OpenAI client (e.g., OpenRouter).
-        max_workers: Default number of concurrent threads for classify_df.
+        max_workers: Default number of concurrent threads for extract_df.
         chunk_size: Default number of rows per LLM request chunk.
     """
 

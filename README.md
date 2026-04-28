@@ -401,6 +401,22 @@ extract_df(
 
 Failed API calls are retried automatically (tenacity, exponential backoff, up to 5 attempts) on `RateLimitError` and `APIError`. If a chunk still fails after retries, the failure is logged and the chunk's rows are omitted from the returned DataFrame.
 
+### draft_prompt knobs
+
+```python
+draft_prompt(
+    goal,                       # required: plain-English description of what to extract
+    backend="openai",           # or "anthropic"
+    model="gpt-4.1-mini",       # model for the meta-call; any chat model works
+    api_key=None,               # overrides .env / environment
+    base_url=None,              # for OpenRouter / Gemini compat
+    print_prompt=True,          # print result to stdout (useful in notebooks)
+)
+```
+
+`draft_prompt` returns the generated prompt string. Set `print_prompt=False` to suppress
+the automatic `print` and capture only the return value.
+
 ---
 
 ## FAQ

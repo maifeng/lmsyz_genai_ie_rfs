@@ -70,9 +70,10 @@ nav:
       - Switch providers: how-to/switch-providers.md
       - Run a batch job: how-to/batch-jobs.md
       - Inspect the results database: how-to/inspect-results-db.md
-      - Troubleshooting: explanation/troubleshooting.md
+      - Troubleshooting: how-to/troubleshooting.md
   - Reference:
       - extract_df: reference/extract_df.md
+      - draft_prompt: reference/draft_prompt.md
       - Batch extractors: reference/batch-extractors.md
       - SqliteCache: reference/sqlite-cache.md
       - Settings: reference/settings.md

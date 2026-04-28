@@ -9,7 +9,7 @@ Anthropic's batch API is architecturally different from OpenAI's:
 
 Use this when you have thousands of rows and can tolerate up to 24 hours of
 turnaround. For small jobs or when you need results immediately, use the
-concurrent ``LLMClient.classify_df`` path instead.
+concurrent ``extract_df`` function instead.
 
 Input: a pandas DataFrame with id and text columns, plus a prompt string.
 Output: local JSON and JSONL manifests on disk, then a pandas DataFrame of
@@ -65,7 +65,7 @@ class AnthropicBatchExtractor:
         batch_root_dir: str = "anthropic_batch_jobs",
         api_key: str | None = None,
     ) -> None:
-        """Initialise the classifier.
+        """Initialise the extractor.
 
         Args:
             batch_root_dir: Root directory for batch jobs. Created if absent.

@@ -34,7 +34,7 @@ Output: batch JSONL files on disk, then a pandas DataFrame of parsed results.
 # (genai) SDK for the upload step, then pass the resulting file ID to
 # openai_client.batches.create(input_file_id=...). Because of this hybrid
 # requirement, the recommended approach for Gemini users is the concurrent
-# path: LLMClient(backend='openai', base_url=gemini_compat_url, ...).
+# path: extract_df(..., provider='openai', base_url=gemini_compat_url, ...).
 """
 
 from __future__ import annotations
@@ -96,7 +96,7 @@ class OpenAIBatchExtractor:
         max_requests_per_batch: int = 5000,
         api_key: str | None = None,
     ) -> None:
-        """Initialise the classifier.
+        """Initialise the extractor.
 
         Args:
             batch_root_dir: Root directory for batch jobs. Created if absent.
