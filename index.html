@@ -1,0 +1,2019 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Prompt-based information extraction over pandas DataFrames.">
+      
+      
+      
+        <link rel="canonical" href="https://maifeng.github.io/lmsyz_genai_ie_rfs/">
+      
+      
+      
+        <link rel="next" href="concepts/architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>lmsyz_genai_ie_rfs</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#genai-information-extraction-for-dataframes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="lmsyz_genai_ie_rfs" class="md-header__button md-logo" aria-label="lmsyz_genai_ie_rfs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            lmsyz_genai_ie_rfs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="lmsyz_genai_ie_rfs" class="md-nav__button md-logo" aria-label="lmsyz_genai_ie_rfs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    lmsyz_genai_ie_rfs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quickstart-entity-relation-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quickstart: entity + relation extraction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#speed-up-chunk_size-and-max_workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Speed up: chunk_size and max_workers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-results-cache-db-cache_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The results cache DB (cache_path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The results cache DB (cache_path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-change-the-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What if I change the prompt?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-api-50-cheaper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch API: ~50% cheaper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch API: ~50% cheaper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model providers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model providers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openrouter-one-key-hundreds-of-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenRouter: one key, hundreds of models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini-direct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini direct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drafting-a-prompt-with-draft_prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drafting a prompt with draft_prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-a-json-schema-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: a JSON schema file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-knobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        All knobs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="All knobs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#draft_prompt-knobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        draft_prompt knobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-in-the-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next in the documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="concepts/prompts-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prompts and schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="concepts/results-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/batch-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run a batch job
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/switch-providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Switch providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/inspect-results-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect the results database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/change-prompt-safely/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Change the prompt safely
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/resume-after-crash/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resume after a crash
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="how-to/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/extract_df/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    extract_df
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/draft_prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    draft_prompt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/batch-extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batch extractors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/sqlite-cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cache and chunking internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="explanation/design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quickstart-entity-relation-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quickstart: entity + relation extraction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#speed-up-chunk_size-and-max_workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Speed up: chunk_size and max_workers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-results-cache-db-cache_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The results cache DB (cache_path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The results cache DB (cache_path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-change-the-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What if I change the prompt?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-api-50-cheaper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch API: ~50% cheaper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch API: ~50% cheaper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model providers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model providers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openrouter-one-key-hundreds-of-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenRouter: one key, hundreds of models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini-direct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini direct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drafting-a-prompt-with-draft_prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drafting a prompt with draft_prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-a-json-schema-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: a JSON schema file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-knobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        All knobs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="All knobs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#draft_prompt-knobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        draft_prompt knobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FAQ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-in-the-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next in the documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="genai-information-extraction-for-dataframes">GenAI Information Extraction for DataFrames<a class="headerlink" href="#genai-information-extraction-for-dataframes" title="Permanent link">&para;</a></h1>
+<p>A general-purpose library for <strong>prompt-based information extraction over DataFrames</strong>, with concurrent and batch execution against OpenAI, Anthropic, and models on OpenRouter.</p>
+<p><a href="https://colab.research.google.com/github/maifeng/lmsyz_genai_ie_rfs/blob/main/notebooks/00_colab_quickstart.ipynb"><img alt="Open in Colab" src="https://img.shields.io/badge/Colab-60--second%20quickstart-orange?logo=googlecolab&amp;logoColor=white" /></a>
+<a href="https://pypi.org/project/lmsyz_genai_ie_rfs/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/lmsyz_genai_ie_rfs.svg" /></a>
+<a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a></p>
+<p>Cite as: Li, Mai, Shen, Yang, Zhang (2026), RFS. Full citation and BibTeX at the <a href="#citation">bottom of this page</a>.</p>
+<hr />
+<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>lmsyz_genai_ie_rfs
+</code></pre></div>
+<p>Set at least one provider key (or drop them in a <code>.env</code> file next to your notebook):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sk-...&quot;</span>
+<span class="c1"># os.environ[&quot;ANTHROPIC_API_KEY&quot;] = &quot;sk-ant-...&quot;</span>
+<span class="c1"># os.environ[&quot;OPENROUTER_API_KEY&quot;] = &quot;sk-or-...&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="quickstart-entity-relation-extraction">Quickstart: entity + relation extraction<a class="headerlink" href="#quickstart-entity-relation-extraction" title="Permanent link">&para;</a></h2>
+<p>Three short news sentences in:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>text</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Apple CEO Tim Cook announced the iPhone 17 at WWDC in June 2025.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tesla acquired SolarCity in 2016 for $2.6 billion to enter the solar market.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Pfizer's decision to spin off its consumer health unit was driven by activist pressure from Trian Partners.</td>
+</tr>
+</tbody>
+</table>
+<p>Structured DataFrame out:</p>
+<table>
+<thead>
+<tr>
+<th>input_id</th>
+<th>entities</th>
+<th>causal_triples</th>
+<th>sentiment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>[{Tim Cook, PERSON}, {Apple, ORG}, {iPhone 17, PRODUCT}, {WWDC, EVENT}, {June 2025, DATE}]</code></td>
+<td><code>[]</code></td>
+<td>neutral</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>[{Tesla, ORG}, {SolarCity, ORG}, {2016, DATE}, {$2.6 billion, MONEY}]</code></td>
+<td><code>[[acquisition, enabled, market entry]]</code></td>
+<td>positive</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>[{Pfizer, ORG}, {Trian Partners, ORG}]</code></td>
+<td><code>[[activist pressure, drove, spin-off]]</code></td>
+<td>neutral</td>
+</tr>
+</tbody>
+</table>
+<p>One function call:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_df</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Apple CEO Tim Cook announced the iPhone 17 at WWDC in June 2025.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Tesla&#39;s $2.6 billion acquisition of SolarCity in 2016 enabled its entry into the solar market.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Pfizer&#39;s decision to spin off its consumer health unit was driven by activist pressure from Trian Partners.&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">})</span>
+
+<span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">You are an information-extraction assistant. For each input row, analyze the text and extract structured information.</span>
+
+<span class="s2">Step-by-step instructions:</span>
+
+<span class="s2">1. input_id: Copy the input_id from the row verbatim.</span>
+<span class="s2">2. entities: List every named entity mentioned in the text. For each entity give:</span>
+<span class="s2">   - name: the surface form as it appears in the text.</span>
+<span class="s2">   - type: one of &quot;PERSON&quot;, &quot;ORG&quot;, &quot;PRODUCT&quot;, &quot;DATE&quot;, &quot;MONEY&quot;.</span>
+<span class="s2">3. causal_triples: If the text explicitly states a cause and effect, list each as a</span>
+<span class="s2">   three-element array [&quot;cause&quot;, &quot;relation&quot;, &quot;effect&quot;]. If there is no explicit</span>
+<span class="s2">   causation, return an empty list []. All elements should be concisely summarized, in three words or less. </span>
+<span class="s2">4. sentiment: One of &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
+
+<span class="s2">Return a JSON object with this EXACT structure:</span>
+
+<span class="s2">{</span>
+<span class="s2">  &quot;all_results&quot;: [</span>
+<span class="s2">    {</span>
+<span class="s2">      &quot;input_id&quot;: &quot;1&quot;,</span>
+<span class="s2">      &quot;entities&quot;: [</span>
+<span class="s2">        {&quot;name&quot;: &quot;Apple&quot;,    &quot;type&quot;: &quot;ORG&quot;},</span>
+<span class="s2">        {&quot;name&quot;: &quot;Tim Cook&quot;, &quot;type&quot;: &quot;PERSON&quot;}</span>
+<span class="s2">      ],</span>
+<span class="s2">      &quot;causal_triples&quot;: [[cause_1, relation_1, effect_1], [cause_2, relation_2, effect_2], ...],</span>
+<span class="s2">      &quot;sentiment&quot;: &quot;positive/neutral/negative&quot;</span>
+<span class="s2">    }</span>
+<span class="s2">  ]</span>
+<span class="s2">}</span>
+
+<span class="s2">Do not include any fields besides input_id, entities, causal_triples, and sentiment.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> 
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> 
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;demo.sqlite&quot;</span><span class="p">,</span>
+    <span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">text_col</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="n">entities</span> <span class="o">=</span> <span class="n">out</span><span class="p">[[</span><span class="s1">&#39;input_id&#39;</span><span class="p">,</span> <span class="s1">&#39;entities&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="s2">&quot;entities&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span>
+</code></pre></div>
+<p>Save:</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;extraction.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>                          
+</code></pre></div>
+<p><strong>Tip:</strong> No prompt yet? <code>draft_prompt(goal="...")</code> returns a starter you can edit. See <a href="#drafting-a-prompt-with-draft_prompt">draft_prompt</a> below.</p>
+<hr />
+<h2 id="speed-up-chunk_size-and-max_workers">Speed up: <code>chunk_size</code> and <code>max_workers</code><a class="headerlink" href="#speed-up-chunk_size-and-max_workers" title="Permanent link">&para;</a></h2>
+<p><code>max_workers</code> sets the size of the threadpool that issues API calls in parallel. <code>chunk_size</code> sets how many DataFrame rows are packed into each call (one shared system prompt, <code>chunk_size</code> user inputs). Combining them can speed up execution by 100× compared to a naive <code>for</code> loop with one row per call. </p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=...</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>        <span class="c1"># rows packed into one API call (amortizes the system prompt)</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>      <span class="c1"># API calls in flight at once (a thread pool)</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;big.sqlite&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>At ~1 second per call, 100,000 rows:</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>API calls</th>
+<th>Wall-clock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One row per call, serial (a plain <code>for</code> loop)</td>
+<td>100,000</td>
+<td>~28 hours</td>
+</tr>
+<tr>
+<td>One row per call, <code>max_workers=20</code></td>
+<td>100,000</td>
+<td>~83 minutes</td>
+</tr>
+<tr>
+<td><code>chunk_size=5</code>, <code>max_workers=20</code></td>
+<td>20,000</td>
+<td><strong>~17 minutes</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tuning:</strong> start <code>chunk_size=5</code>, <code>max_workers=20</code>. Raise <code>max_workers</code> until the log shows rate-limit retries (OpenAI tier-3 handles 60–100; Anthropic tier-2 handles 20–50). </p>
+<p>For ~50% lower per-token cost in exchange for asynchronous execution, see <a href="#batch-api-50-cheaper">the batch API</a> below.</p>
+<hr />
+<h2 id="the-results-cache-db-cache_path">The results cache DB (<code>cache_path</code>)<a class="headerlink" href="#the-results-cache-db-cache_path" title="Permanent link">&para;</a></h2>
+<p>API calls cost money and time. The cache exists so that an interrupted, edited, or replayed run does not re-send rows that already returned.</p>
+<p><code>cache_path</code> is <strong>required</strong>. It is the path to a SQLite file. Each completed row is written to it as soon as it returns from the model. The file is not auto-deleted.</p>
+<p>On rerun with the same <code>cache_path</code>, rows already in the cache are skipped; only missing rows go to the model.</p>
+<p>The schema is three columns:</p>
+<div class="highlight"><pre><span></span><code><span class="n">results</span><span class="p">(</span><span class="n">row_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w"> </span><span class="n">json_result</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w"> </span><span class="n">prompt_hash</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">)</span>
+</code></pre></div>
+<p>Open in any SQLite browser or <code>sqlite3 my_experiment.sqlite</code> to inspect. Force a full re-run: <code>fresh=True</code>.</p>
+<h3 id="what-if-i-change-the-prompt">What if I change the prompt?<a class="headerlink" href="#what-if-i-change-the-prompt" title="Permanent link">&para;</a></h3>
+<p>Each cached row is stamped with <code>sha256(prompt)[:16]</code>. On rerun, rows whose stamp matches the current prompt are skipped; rows stamped with a different prompt are re-executed and <strong>the old row is overwritten</strong> (<code>INSERT OR REPLACE</code> on <code>row_id</code>).</p>
+<p>Three escape hatches:</p>
+<ul>
+<li>Compare prompts side by side: use a different <code>cache_path</code> for each prompt version.</li>
+<li>Fixed a typo and want to keep the cached rows: pass <code>ignore_prompt_hash=True</code>.</li>
+<li>Wipe and redo: <code>fresh=True</code>, or delete the <code>.sqlite</code> file.</li>
+</ul>
+<hr />
+<h2 id="batch-api-50-cheaper">Batch API: ~50% cheaper<a class="headerlink" href="#batch-api-50-cheaper" title="Permanent link">&para;</a></h2>
+<p>OpenAI and Anthropic both expose a Batch API at approximately 50% of the per-token cost. Execution is asynchronous with a stated 24-hour SLA (typical completion is faster). Lifecycle: build request files, submit, poll status, retrieve.</p>
+<h3 id="openai-batch">OpenAI batch<a class="headerlink" href="#openai-batch" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIBatchExtractor</span>
+
+<span class="n">ext</span> <span class="o">=</span> <span class="n">OpenAIBatchExtractor</span><span class="p">(</span><span class="n">batch_root_dir</span><span class="o">=</span><span class="s2">&quot;my_job/&quot;</span><span class="p">)</span>
+
+<span class="n">ext</span><span class="o">.</span><span class="n">create_batch_jsonl</span><span class="p">(</span>               <span class="c1"># 1. write JSONL input files</span>
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">text_col</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">job_id</span><span class="o">=</span><span class="s2">&quot;my_job&quot;</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
+    <span class="n">schema_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                 <span class="c1"># or a strict json_schema dict</span>
+<span class="p">)</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">submit_batches</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>          <span class="c1"># 2. upload + submit</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">check_batch_status</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">,</span>      <span class="c1"># 3. poll</span>
+                       <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">retrieve_results_as_dataframe</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>   <span class="c1"># 4. results as DataFrame</span>
+</code></pre></div>
+<h3 id="anthropic-batch">Anthropic batch<a class="headerlink" href="#anthropic-batch" title="Permanent link">&para;</a></h3>
+<p>Same lifecycle, different wire format (a JSON request body, not a JSONL file upload):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnthropicBatchExtractor</span>
+
+<span class="n">ext</span> <span class="o">=</span> <span class="n">AnthropicBatchExtractor</span><span class="p">(</span><span class="n">batch_root_dir</span><span class="o">=</span><span class="s2">&quot;my_job/&quot;</span><span class="p">)</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">create_batch_requests</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">schema_dict</span><span class="o">=</span><span class="n">my_schema</span><span class="p">)</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">submit_batch</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">check_batch_status</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">,</span> <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">retrieve_results_as_dataframe</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Batch not finished yet; check status and retry.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</code></pre></div>
+<p>All intermediate files (JSONL input, submission manifest, raw results) are written under <code>batch_root_dir/&lt;job_id&gt;/</code> and can be inspected directly.</p>
+<hr />
+<h2 id="model-providers">Model providers<a class="headerlink" href="#model-providers" title="Permanent link">&para;</a></h2>
+<p>Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting <code>base_url=</code>. The same <code>extract_df</code> call shape works for all of them; only <code>model</code>, <code>base_url</code>, and <code>api_key</code> change.</p>
+<p>To switch to Anthropic, change <code>backend</code> and <code>model</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;run.sqlite&quot;</span><span class="p">,</span>
+                 <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet-20241022&quot;</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>OpenAI</th>
+<th>Anthropic</th>
+<th>OpenAI-compatible<br/>(OpenRouter, Gemini, Together, vLLM, ...)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Concurrent, no schema</td>
+<td>yes: <code>json_object</code></td>
+<td>yes: plain text (parsed tolerantly)</td>
+<td>model-dependent</td>
+</tr>
+<tr>
+<td>Concurrent, with schema</td>
+<td>yes: structured outputs</td>
+<td>yes: <code>tool_use</code> + prompt caching</td>
+<td>model-dependent (gateway forwards <code>response_format</code>)</td>
+</tr>
+<tr>
+<td>Batch API (~50% cheaper)</td>
+<td>yes: <code>OpenAIBatchExtractor</code></td>
+<td>yes: <code>AnthropicBatchExtractor</code></td>
+<td>use the gateway's native batch API</td>
+</tr>
+<tr>
+<td>Long-prompt caching</td>
+<td>automatic (1024+ tokens)</td>
+<td>explicit <code>cache_control</code> on system</td>
+<td>upstream-model-dependent</td>
+</tr>
+</tbody>
+</table>
+<h3 id="openrouter-one-key-hundreds-of-models">OpenRouter: one key, hundreds of models<a class="headerlink" href="#openrouter-one-key-hundreds-of-models" title="Permanent link">&para;</a></h3>
+<p>OpenRouter is a gateway: a single key + base_url puts you in front of Llama, Mistral, DeepSeek, Qwen, Gemini, Claude, and many more. Swap <code>model=</code> for whichever you want.</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">my_prompt</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://openrouter.ai/api/v1&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENROUTER_API_KEY&quot;</span><span class="p">],</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen/qwen-2.5-72b-instruct&quot;</span><span class="p">,</span>          <span class="c1"># Qwen</span>
+    <span class="c1"># model=&quot;deepseek/deepseek-chat&quot;,            # DeepSeek</span>
+    <span class="c1"># model=&quot;meta-llama/llama-3.3-70b-instruct&quot;, # Llama</span>
+    <span class="c1"># model=&quot;mistralai/mistral-large&quot;,           # Mistral</span>
+    <span class="c1"># model=&quot;anthropic/claude-haiku-4.5&quot;,        # Claude (proxied)</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;openrouter.sqlite&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>JSON-mode support varies by model on OpenRouter. If a model returns malformed JSON, switch to one that supports <code>response_format</code>, or pass a strict <code>schema=</code> so the gateway routes via JSON-schema mode.</p>
+<h3 id="gemini-direct">Gemini direct<a class="headerlink" href="#gemini-direct" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">my_prompt</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gemini-2.5-flash&quot;</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://generativelanguage.googleapis.com/v1beta/openai/&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GEMINI_API_KEY&quot;</span><span class="p">],</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;gemini.sqlite&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="drafting-a-prompt-with-draft_prompt">Drafting a prompt with <code>draft_prompt</code><a class="headerlink" href="#drafting-a-prompt-with-draft_prompt" title="Permanent link">&para;</a></h2>
+<p>Pass a sentence describing what you want to extract; <code>draft_prompt</code> returns a candidate prompt in the package's standard structure (a numbered field list followed by a <code>{"all_results": [...]}</code> JSON envelope) for you to edit:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">draft_prompt</span>
+
+<span class="n">prompt</span> <span class="o">=</span> <span class="n">draft_prompt</span><span class="p">(</span>
+    <span class="n">goal</span><span class="o">=</span><span class="s2">&quot;Tag short product reviews with sentiment (positive/neutral/negative) and a confidence score 0-1.&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Prints and returns:</p>
+<div class="highlight"><pre><span></span><code>You are an information-extraction assistant. For each input row, analyze the product review and extract structured information.
+
+Step-by-step instructions:
+
+1. input_id: Copy the input_id from the row verbatim.
+2. sentiment: Tag the review&#39;s overall sentiment as one of &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.
+3. confidence: Provide a confidence score for the sentiment tag as a float between 0 and 1 inclusive.
+
+Return a JSON object with this EXACT structure:
+
+{
+  &quot;all_results&quot;: [
+    {
+      &quot;input_id&quot;: &quot;42&quot;,
+      &quot;sentiment&quot;: &quot;positive&quot;,
+      &quot;confidence&quot;: 0.87
+    }
+  ]
+}
+
+Do not include any fields besides input_id, sentiment, and confidence.
+</code></pre></div>
+<p>Read the result, tighten enums, add any domain-specific instructions, then pass it to <code>extract_df(prompt=prompt, ...)</code>. Defaults are <code>backend="openai"</code>, <code>model="gpt-4.1-mini"</code>; pass <code>backend="anthropic"</code> to use Claude instead. The temperature is fixed at 0, so the same <code>goal</code> reproduces the same starting prompt.</p>
+<hr />
+<h2 id="optional-a-json-schema-file">Optional: a JSON schema file<a class="headerlink" href="#optional-a-json-schema-file" title="Permanent link">&para;</a></h2>
+<p>By default, output structure is enforced only by the prompt; the model returns a JSON object whose shape it infers from the instructions.</p>
+<p>Pass <code>schema=</code> to enforce structure at the API layer. OpenAI consumes it as <code>response_format={"type": "json_schema", ...}</code>; Anthropic consumes it as the <code>input_schema</code> of a forced <code>tool_use</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">my_prompt</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s2">&quot;my_schema.json&quot;</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;strict.sqlite&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The file contains a standard OpenAI <code>response_format</code> object. Here is one matching the Quickstart task above:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;json_schema&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;json_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;news_extraction&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;strict&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;all_results&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;all_results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;input_id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;entities&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;causal_triples&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sentiment&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;input_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">              </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">                  </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">                  </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+<span class="w">                  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">                    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;PERSON&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ORG&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PRODUCT&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DATE&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;MONEY&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;EVENT&quot;</span><span class="p">]}</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">              </span><span class="p">},</span>
+<span class="w">              </span><span class="nt">&quot;causal_triples&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+<span class="w">                  </span><span class="nt">&quot;minItems&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;maxItems&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">                  </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">              </span><span class="p">},</span>
+<span class="w">              </span><span class="nt">&quot;sentiment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;neutral&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;negative&quot;</span><span class="p">]}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The same file works on Anthropic: the library extracts the inner <code>schema</code> object and passes it as the <code>input_schema</code> of a <code>tool_use</code>.</p>
+<p><code>schema=</code> accepts a file path, a dict with the contents above, or <code>None</code> (the default).</p>
+<hr />
+<h2 id="all-knobs">All knobs<a class="headerlink" href="#all-knobs" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=...</span><span class="p">,</span>                 <span class="c1"># required</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;path.sqlite&quot;</span><span class="p">,</span>   <span class="c1"># required: results DB on disk</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>           <span class="c1"># or &quot;anthropic&quot;</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>       <span class="c1"># required</span>
+    <span class="n">schema</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                <span class="c1"># optional: path to JSON schema file, dict, or None</span>
+    <span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+    <span class="n">text_col</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>               <span class="c1"># rows per API call; 5-20 is typical</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>             <span class="c1"># parallel threads; tune to your rate limit</span>
+    <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>                <span class="c1"># True to ignore prior DB contents</span>
+    <span class="n">ignore_prompt_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>   <span class="c1"># True to reuse rows produced by a different prompt</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>               <span class="c1"># overrides .env / environment</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>              <span class="c1"># for OpenRouter / Gemini compat</span>
+    <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                <span class="c1"># BYO preconfigured SDK client</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Failed API calls are retried automatically (tenacity, exponential backoff, up to 5 attempts) on <code>RateLimitError</code> and <code>APIError</code>. If a chunk still fails after retries, the failure is logged and the chunk's rows are omitted from the returned DataFrame.</p>
+<h3 id="draft_prompt-knobs">draft_prompt knobs<a class="headerlink" href="#draft_prompt-knobs" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">draft_prompt</span><span class="p">(</span>
+    <span class="n">goal</span><span class="p">,</span>                       <span class="c1"># required: plain-English description of what to extract</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>           <span class="c1"># or &quot;anthropic&quot;</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>       <span class="c1"># model for the meta-call; any chat model works</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>               <span class="c1"># overrides .env / environment</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>              <span class="c1"># for OpenRouter / Gemini compat</span>
+    <span class="n">print_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>          <span class="c1"># print result to stdout (useful in notebooks)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>draft_prompt</code> returns the generated prompt string. Set <code>print_prompt=False</code> to suppress
+the automatic <code>print</code> and capture only the return value.</p>
+<hr />
+<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<p><strong>Why does my DataFrame have fewer rows than I expect?</strong> A chunk failed after retries. Check the log for the stack trace.</p>
+<p><strong>How do I restart a batch job when I lost the <code>job_id</code>?</strong> Look under <code>batch_root_dir/</code>. The directories ARE the <code>job_id</code>s.</p>
+<p><strong>Is there retry logic?</strong> Yes: tenacity, 5 attempts with exponential backoff 2-30s for <code>RateLimitError</code> and <code>APIError</code>.</p>
+<p><strong>What about nested lists and dicts in the output?</strong> Flatten with <code>df.explode("entities")</code> (each list item becomes its own row), followed by <code>pd.json_normalize(df["entities"])</code> (each dict's keys become columns). CSV stringifies nested fields; save as JSONL (<code>df.to_json(..., orient="records", lines=True)</code>) for clean round-tripping.</p>
+<hr />
+<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
+<p>If you find this library useful in your research, please cite:</p>
+<p>Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang (2026). "Dissecting Corporate Culture Using Generative AI." <em>Review of Financial Studies</em> 39(1):253–296. <a href="https://doi.org/10.1093/rfs/hhaf081">doi.org/10.1093/rfs/hhaf081</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="nc">@article</span><span class="p">{</span><span class="nl">li2026dissecting</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{Dissecting Corporate Culture Using Generative {AI}}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{Li, Kai and Mai, Feng and Shen, Rui and Yang, Chelsea and Zhang, Tengfei}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">journal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Review of Financial Studies}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">volume</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{39}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">number</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{1}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">pages</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{253--296}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{2026}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">doi</span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="s">{10.1093/rfs/hhaf081}</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="github">GitHub<a class="headerlink" href="#github" title="Permanent link">&para;</a></h2>
+<p>Source code: <a href="https://github.com/maifeng/lmsyz_genai_ie_rfs">https://github.com/maifeng/lmsyz_genai_ie_rfs</a></p>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>MIT.</p>
+<hr />
+<h2 id="next-in-the-documentation">Next in the documentation<a class="headerlink" href="#next-in-the-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Concepts</strong> goes deeper on <a href="concepts/architecture/">architecture</a>, <a href="concepts/prompts-and-schemas/">prompts and schemas</a>, and the <a href="concepts/results-db/">results database</a>.</li>
+<li><strong>How-to</strong> has task-oriented recipes: <a href="how-to/resume-after-crash/">resume</a>, <a href="how-to/change-prompt-safely/">change prompt safely</a>, <a href="how-to/switch-providers/">switch providers</a>, <a href="how-to/batch-jobs/">batch jobs</a>, <a href="how-to/inspect-results-db/">inspect results</a>, <a href="how-to/troubleshooting/">troubleshooting</a>.</li>
+<li><strong>Reference</strong> is the full API: <a href="reference/extract_df/">extract_df</a>, <a href="reference/draft_prompt/">draft_prompt</a>, <a href="reference/batch-extractors/">batch extractors</a>, <a href="reference/sqlite-cache/">cache and chunking internals</a>, <a href="reference/settings/">settings</a>.</li>
+<li><strong>Explanation</strong> covers the "why": <a href="explanation/design-decisions/">design decisions</a>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

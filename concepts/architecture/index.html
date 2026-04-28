@@ -1,0 +1,1379 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Prompt-based information extraction over pandas DataFrames.">
+      
+      
+      
+        <link rel="canonical" href="https://maifeng.github.io/lmsyz_genai_ie_rfs/concepts/architecture/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../prompts-and-schemas/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Architecture - lmsyz_genai_ie_rfs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="lmsyz_genai_ie_rfs" class="md-header__button md-logo" aria-label="lmsyz_genai_ie_rfs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            lmsyz_genai_ie_rfs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="lmsyz_genai_ie_rfs" class="md-nav__button md-logo" aria-label="lmsyz_genai_ie_rfs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    lmsyz_genai_ie_rfs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-paths-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two paths at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrent-path-internals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrent path internals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-path-internals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch path internals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch path internals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-library-does-not-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this library does NOT do
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prompts-and-schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prompts and schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../results-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/batch-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run a batch job
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/switch-providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Switch providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/inspect-results-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect the results database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/change-prompt-safely/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Change the prompt safely
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/resume-after-crash/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resume after a crash
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extract_df/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    extract_df
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/draft_prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    draft_prompt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/batch-extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batch extractors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/sqlite-cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cache and chunking internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Explanation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Explanation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-paths-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two paths at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrent-path-internals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrent path internals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-path-internals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch path internals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch path internals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenAI batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anthropic-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anthropic batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-library-does-not-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this library does NOT do
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p><code>lmsyz_genai_ie_rfs</code> has two execution paths. Pick based on how many rows you have and how soon you need results.</p>
+<hr />
+<h2 id="the-two-paths-at-a-glance">The two paths at a glance<a class="headerlink" href="#the-two-paths-at-a-glance" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    DF[pandas DataFrame] --&gt; Q{"How many rows,\nhow soon?"}
+    Q -- "&lt; a few thousand,\nneed results now" --&gt; C["extract_df\n(concurrent)"]
+    Q -- "tens of thousands,\nfine to wait hours" --&gt; B["OpenAIBatchExtractor\nAnthropicBatchExtractor"]
+    C --&gt; OUT1[DataFrame]
+    B --&gt; DISK[JSONL / JSON on disk] --&gt; OUT2[DataFrame]
+
+    style C fill:#e8f4f8,stroke:#2c7a96
+    style B fill:#fef3e8,stroke:#c16d19</code></pre>
+<p><strong>Concurrent path (<code>extract_df</code>)</strong>: a threadpool fires live API calls in parallel. A 20-row job finishes in seconds. Rows are written to SQLite as they complete, so a crash loses nothing. This is what you want 95% of the time.</p>
+<p><strong>Batch path (<code>OpenAIBatchExtractor</code>, <code>AnthropicBatchExtractor</code>)</strong>: submit a request blob (JSONL for OpenAI, JSON body for Anthropic), wait up to 24 hours, retrieve. About 50% cheaper per token. Use when you have tens of thousands of rows and can schedule overnight processing.</p>
+<hr />
+<h2 id="concurrent-path-internals">Concurrent path internals<a class="headerlink" href="#concurrent-path-internals" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    DF[DataFrame] --&gt; FILTER["filter working set\n(skip cached row_ids)"]
+    FILTER --&gt; SHUFFLE["shuffle\n(random_state=42)"]
+    SHUFFLE --&gt; ITER["DataFrameIterator\n(chunk_size rows per chunk)"]
+    ITER --&gt; POOL["ThreadPoolExecutor\n(max_workers threads)"]
+    POOL --&gt; OAI["_call_openai\n(response_format=json_schema\nor json_object)"]
+    POOL --&gt; ANT["_call_anthropic\n(tool_use forced\nor free-form text)"]
+    OAI --&gt; ROWS["list of row dicts\n(from all_results key)"]
+    ANT --&gt; ROWS
+    ROWS --&gt; CACHE["SqliteCache.put\n(row_id, result, prompt_hash)"]
+    ROWS --&gt; MERGE["merge with prior cached rows"]
+    MERGE --&gt; OUT[DataFrame]</code></pre>
+<p>Key behaviors:</p>
+<ul>
+<li><strong>Chunking.</strong> <code>DataFrameIterator</code> slices the working DataFrame into lists of <code>{"input_id": ..., "input_text": ...}</code> dicts, <code>chunk_size</code> rows at a time. Each chunk is one API call.</li>
+<li><strong>Shuffle.</strong> Before chunking, <code>extract_df</code> shuffles the working rows (fixed <code>random_state=42</code>). This distributes variable-length inputs more evenly across workers.</li>
+<li><strong>ThreadPoolExecutor.</strong> All chunks are submitted at once via <code>concurrent.futures.as_completed</code>. Progress is shown with <code>tqdm</code>.</li>
+<li><strong>Retries.</strong> Each call function is decorated with <code>@retry_api_call</code> (tenacity, 5 attempts, exponential backoff 2-30 s) for <code>RateLimitError</code> and <code>APIError</code>. Retries happen at the individual chunk level.</li>
+<li><strong>Per-chunk error handling.</strong> If a chunk exhausts all retries, <code>extract_df</code> logs the exception via <code>log.exception</code> and skips that chunk. The other chunks' results are still returned. The returned DataFrame will have fewer rows than the input; check the log.</li>
+<li><strong>Cache write.</strong> Each successful row is written to <code>SqliteCache</code> immediately after the chunk returns, before the next chunk finishes. A crash mid-run loses at most one chunk's work.</li>
+<li><strong>Cache read.</strong> At startup, <code>extract_df</code> reads the set of already-cached row IDs (filtered by <code>prompt_hash</code>) and removes them from the working set.</li>
+</ul>
+<hr />
+<h2 id="batch-path-internals">Batch path internals<a class="headerlink" href="#batch-path-internals" title="Permanent link">&para;</a></h2>
+<p>The two batch classes share a four-step lifecycle but have different wire formats.</p>
+<h3 id="openai-batch">OpenAI batch<a class="headerlink" href="#openai-batch" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+    DF[DataFrame] --&gt; JSONL["create_batch_jsonl\n(JSONL files on disk)"]
+    JSONL --&gt; DISK[["batch_input/batch_N.jsonl"]]
+    DISK --&gt; UPLOAD["client.files.create\n(file upload)"]
+    UPLOAD --&gt; SUBMIT["client.batches.create\n(completion_window=24h)"]
+    SUBMIT --&gt; MANIFEST[["batch_output/submission_ID.json"]]
+    MANIFEST --&gt; POLL["check_batch_status\nclient.batches.retrieve"]
+    POLL -- "not done" --&gt; SLEEP["sleep(interval)"]
+    SLEEP --&gt; POLL
+    POLL -- "done" --&gt; DOWNLOAD["client.files.content\n(output_file_id)"]
+    DOWNLOAD --&gt; RESULT[["batch_output/batch_result_ID.jsonl"]]
+    RESULT --&gt; PARSE["retrieve_results_as_dataframe"]
+    PARSE --&gt; OUT[DataFrame]</code></pre>
+<p>Steps:
+1. <code>create_batch_jsonl</code> builds one or more JSONL files under <code>batch_input/</code>. Each line is a request dict with a <code>custom_id</code>, an HTTP method, the <code>/v1/chat/completions</code> endpoint, and a full request body. Files are capped at <code>max_requests_per_batch</code> requests (default 5,000).
+2. <code>submit_batches</code> uploads each JSONL file via <code>client.files.create(purpose="batch")</code> and then calls <code>client.batches.create</code>. A submission manifest is written to <code>batch_output/submission_&lt;batch_id&gt;.json</code>.
+3. <code>check_batch_status</code> polls <code>client.batches.retrieve</code>. When complete, the output file is downloaded and written to <code>batch_output/batch_result_&lt;batch_id&gt;.jsonl</code>. Errors are written to <code>batch_output/batch_error_&lt;batch_id&gt;.txt</code>.
+4. <code>retrieve_results_as_dataframe</code> parses each result JSONL, extracts the <code>all_results</code> list from each response, and returns a DataFrame.</p>
+<h3 id="anthropic-batch">Anthropic batch<a class="headerlink" href="#anthropic-batch" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+    DF[DataFrame] --&gt; REQS["create_batch_requests\n(one JSON body list)"]
+    REQS --&gt; DISK[["batch_input/requests.json"]]
+    DISK --&gt; SUBMIT["client.messages.batches.create\n(requests=list)"]
+    SUBMIT --&gt; MANIFEST[["batch_input/submission.json"]]
+    MANIFEST --&gt; POLL["check_batch_status\nclient.messages.batches.retrieve"]
+    POLL -- "in_progress" --&gt; SLEEP["sleep(interval)"]
+    SLEEP --&gt; POLL
+    POLL -- "ended" --&gt; STREAM["client.messages.batches.results\n(streaming JSONL)"]
+    STREAM --&gt; RESULT[["batch_output/results.jsonl"]]
+    RESULT --&gt; PARSE["retrieve_results_as_dataframe\n(tool_use or text fallback)"]
+    PARSE --&gt; OUT[DataFrame]</code></pre>
+<p>Key differences from OpenAI:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>OpenAI</th>
+<th>Anthropic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input format</td>
+<td>JSONL files on disk, one line per request</td>
+<td>Single JSON body: a list of request dicts</td>
+</tr>
+<tr>
+<td>File upload step</td>
+<td>Yes: <code>client.files.create</code></td>
+<td>No: requests posted directly in the API call</td>
+</tr>
+<tr>
+<td>Result delivery</td>
+<td>Download via output file ID</td>
+<td>Streamed via <code>client.messages.batches.results</code></td>
+</tr>
+<tr>
+<td>Max per batch</td>
+<td>5 GB output / 200 MB input</td>
+<td>100,000 requests or 256 MB, whichever first</td>
+</tr>
+<tr>
+<td>Result retention</td>
+<td>Not specified</td>
+<td>29 days</td>
+</tr>
+</tbody>
+</table>
+<p>Both classes write every intermediate artifact (requests, manifests, raw results) to disk under <code>batch_root_dir/job_id/</code>. Nothing is hidden; you can inspect exactly what was sent and what came back.</p>
+<hr />
+<h2 id="module-layout">Module layout<a class="headerlink" href="#module-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>src/lmsyz_genai_ie_rfs/
+├── client.py            extract_df, _call_openai, _call_anthropic
+├── batch.py             OpenAIBatchExtractor  (JSONL file upload path)
+├── anthropic_batch.py   AnthropicBatchExtractor  (JSON body path)
+├── dataframe.py         DataFrameIterator, SqliteCache, compute_prompt_hash
+├── retry.py             retry_api_call  (tenacity decorator)
+└── settings.py          Settings  (pydantic-settings, reads .env / environment)
+</code></pre></div>
+<ul>
+<li><strong><code>client.py</code></strong> is the main entry point for the concurrent path. It owns the public <code>extract_df</code> function and the two private call helpers.</li>
+<li><strong><code>batch.py</code></strong> and <strong><code>anthropic_batch.py</code></strong> are independent batch path implementations. They share <code>DataFrameIterator</code> from <code>dataframe.py</code> but otherwise do not share code.</li>
+<li><strong><code>dataframe.py</code></strong> contains the chunking logic (<code>DataFrameIterator</code>), the cache (<code>SqliteCache</code>), and the hash function (<code>compute_prompt_hash</code>). Both paths import from here.</li>
+<li><strong><code>retry.py</code></strong> exports one decorator: <code>@retry_api_call</code>. It is applied to <code>_call_openai</code> and <code>_call_anthropic</code> at definition time.</li>
+<li><strong><code>settings.py</code></strong> reads <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code>, and <code>OPENAI_BASE_URL</code> from the environment or a <code>.env</code> file via <code>pydantic-settings</code>.</li>
+</ul>
+<hr />
+<h2 id="what-this-library-does-not-do">What this library does NOT do<a class="headerlink" href="#what-this-library-does-not-do" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>No ORM or schema mapping.</strong> Results land in a DataFrame as plain dicts. No model classes are generated or required.</li>
+<li><strong>No circuit breakers.</strong> Retry logic is tenacity-only: 5 attempts, exponential backoff, then the chunk is skipped and logged. There is no half-open state or global failure threshold.</li>
+<li><strong>No in-flight monitoring UI.</strong> Progress is <code>tqdm</code> on the terminal. For batch jobs, progress is log lines from <code>check_batch_status</code>.</li>
+<li><strong>No auto-tuning.</strong> <code>chunk_size</code> and <code>max_workers</code> are caller-supplied. The library does not observe latency or rate-limit headers and adjust automatically.</li>
+<li><strong>No streaming responses.</strong> Each chunk call is a single blocking request; the library does not use streaming completions.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
