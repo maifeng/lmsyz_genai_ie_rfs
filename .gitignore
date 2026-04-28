@@ -64,3 +64,16 @@ batch_jobs/
 *.swo
 test_artifacts/
 site/
+
+# Local Claude / agent instructions (not for distribution)
+CLAUDE.md
+.claude/
+AGENTS.md
+GEMINI.md
+.cursor/
+.cursorrules
+
+# Local plan / scratch
+plan/
+scratch/
+TODO.local.md
