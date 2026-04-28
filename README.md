@@ -2,6 +2,10 @@
 
 A general-purpose library for **prompt-based information extraction over DataFrames**, with concurrent and batch execution against OpenAI, Anthropic, and models on OpenRouter.
 
+[![Open in Colab](https://img.shields.io/badge/Colab-60--second%20quickstart-orange?logo=googlecolab&logoColor=white)](https://colab.research.google.com/github/maifeng/lmsyz_genai_ie_rfs/blob/main/notebooks/00_colab_quickstart.ipynb)
+[![PyPI version](https://img.shields.io/pypi/v/lmsyz_genai_ie_rfs.svg)](https://pypi.org/project/lmsyz_genai_ie_rfs/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 If you find this library useful in your research, please cite:
 
 Li, Mai, Shen, Yang, Zhang (2026), "Dissecting Corporate Culture Using Generative AI," *Review of Financial Studies* 39(1):253–296, [doi.org/10.1093/rfs/hhaf081](https://doi.org/10.1093/rfs/hhaf081).
