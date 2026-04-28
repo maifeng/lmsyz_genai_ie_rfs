@@ -2,6 +2,8 @@
 
 Public API:
     extract_df                    - concurrent (threadpool) extraction
+    draft_prompt                  - draft an extract_df prompt from a
+                                    plain-English goal
     OpenAIBatchExtractor          - OpenAI Batch API lifecycle helper
     AnthropicBatchExtractor       - Anthropic Message Batches lifecycle helper
     SqliteCache                   - small get/put/all_ids resume cache
@@ -19,6 +21,7 @@ from lmsyz_genai_ie_rfs.anthropic_batch import AnthropicBatchExtractor
 from lmsyz_genai_ie_rfs.batch import OpenAIBatchExtractor
 from lmsyz_genai_ie_rfs.client import extract_df
 from lmsyz_genai_ie_rfs.dataframe import SqliteCache
+from lmsyz_genai_ie_rfs.draft_prompt import draft_prompt
 
 __version__ = "0.1.0"
 
@@ -31,6 +34,7 @@ __paper__ = (
 
 __all__ = [
     "extract_df",
+    "draft_prompt",
     "OpenAIBatchExtractor",
     "AnthropicBatchExtractor",
     "SqliteCache",

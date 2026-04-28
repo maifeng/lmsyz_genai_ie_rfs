@@ -428,6 +428,27 @@ results = batch.retrieve_results_as_dataframe(job_id="culture_v1")
 results.head()
 
 # %% [markdown]
+# ## 10b. (Bonus) Draft a starting prompt with `draft_prompt`
+#
+# `draft_prompt(goal=...)` turns a plain-English description into a
+# candidate prompt in the same house style as `CULTURE_PROMPT`. The
+# drafted prompt is printed below; read it, copy what you like, and
+# edit. Different shape from culture extraction: here we ask for a
+# closed-enum work topic and a 1-5 satisfaction score, two fields total.
+
+# %%
+from lmsyz_genai_ie_rfs import draft_prompt
+
+draft_prompt(
+    goal=(
+        "From a Glassdoor review row, tag the main work topic as one of "
+        "[compensation, management, culture, work_life_balance, growth, other] "
+        "and rate how satisfied the reviewer sounds on a 1-5 integer scale."
+    ),
+    api_key=os.environ["OPENAI_API_KEY"],
+)
+
+# %% [markdown]
 # ## 11. Your turn: extraction exercise (breakout)
 #
 # The pattern works for *any* structured extraction. Below is a 3-row
@@ -451,6 +472,8 @@ results.head()
 # | 3        | `[{Pfizer, ORG}, {Trian Partners, ORG}]`                                                          | `[["activist pressure", "drove", "spin-off"]]`   | neutral   |
 #
 # Fill in `MY_PROMPT` and run. Compare with your breakout group.
+#
+# Stuck? See `draft_prompt(goal=...)` in §10b above.
 
 # %%
 news = pd.DataFrame(

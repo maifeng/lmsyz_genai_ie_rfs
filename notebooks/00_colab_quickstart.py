@@ -131,3 +131,25 @@ flat = pd.concat(
     axis=1,
 )
 flat
+
+# %% [markdown]
+# ## 7. (Optional) Draft a prompt from a one-line goal
+#
+# `draft_prompt(goal=...)` turns a plain-English description into a
+# candidate prompt in the same house style as the one in section 4.
+# The drafted prompt is printed below; read it and copy what you like.
+# Different shape from the basic example: here we ask for a closed-enum
+# business-event type and a 1-5 impact score.
+
+# %%
+from lmsyz_genai_ie_rfs import draft_prompt
+
+draft_prompt(
+    goal=(
+        "From a short business news sentence, classify the event type as "
+        "one of [acquisition, product_launch, partnership, leadership_change, "
+        "lawsuit, financial_result, other] and rate the impact on the primary "
+        "company on a 1-5 integer scale."
+    ),
+    api_key=os.environ["OPENAI_API_KEY"],
+)

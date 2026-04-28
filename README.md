@@ -119,6 +119,50 @@ out.to_csv("extraction.csv", index=False)
 
 ---
 
+## Drafting a prompt with `draft_prompt`
+
+Pass a sentence describing what you want to extract; `draft_prompt` returns a candidate prompt in the house style for you to edit:
+
+```python
+import os
+from lmsyz_genai_ie_rfs import draft_prompt
+
+prompt = draft_prompt(
+    goal="Tag short product reviews with sentiment (positive/neutral/negative) and a confidence score 0-1.",
+    api_key=os.environ["OPENAI_API_KEY"],
+)
+```
+
+Prints and returns:
+
+```text
+You are an information-extraction assistant. For each input row, analyze the product review and extract structured information.
+
+Step-by-step instructions:
+
+1. input_id: Copy the input_id from the row verbatim.
+2. sentiment: Tag the review's overall sentiment as one of "positive", "neutral", or "negative".
+3. confidence: Provide a confidence score for the sentiment tag as a float between 0 and 1 inclusive.
+
+Return a JSON object with this EXACT structure:
+
+{
+  "all_results": [
+    {
+      "input_id": "42",
+      "sentiment": "positive",
+      "confidence": 0.87
+    }
+  ]
+}
+
+Do not include any fields besides input_id, sentiment, and confidence.
+```
+
+Read the result, tighten enums, add any domain-specific instructions, then pass it to `extract_df(prompt=prompt, ...)`. Defaults are `backend="openai"`, `model="gpt-4.1-mini"`; pass `backend="anthropic"` to use Claude instead. The temperature is fixed at 0, so the same `goal` reproduces the same starting prompt.
+
+---
+
 ## Speed up: `chunk_size` and `max_workers`
 
 `max_workers` sets the size of the threadpool that issues API calls in parallel. `chunk_size` sets how many DataFrame rows are packed into each call (one shared system prompt, `chunk_size` user inputs). Combining them can speed up execution by 100× compared to a naive `for` loop with one row per call. 
