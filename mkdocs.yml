@@ -1,4 +1,5 @@
 site_name: lmsyz_genai_ie_rfs
+site_url: https://maifeng.github.io/lmsyz_genai_ie_rfs/
 site_description: Prompt-based information extraction over pandas DataFrames.
 
 theme:

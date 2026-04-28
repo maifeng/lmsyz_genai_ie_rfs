@@ -56,7 +56,7 @@ df = pd.DataFrame({
     "id": [1, 2, 3],
     "text": [
         "Apple CEO Tim Cook announced the iPhone 17 at WWDC in June 2025.",
-        "Tesla’s $2.6 billion acquisition of SolarCity in 2016 enabled its entry into the solar market.",
+        "Tesla's $2.6 billion acquisition of SolarCity in 2016 enabled its entry into the solar market.",
         "Pfizer's decision to spin off its consumer health unit was driven by activist pressure from Trian Partners.",
     ],
 })
@@ -116,6 +116,162 @@ Save:
 out.to_csv("extraction.csv", index=False)                          
 ```
 
+**Tip:** No prompt yet? `draft_prompt(goal="...")` returns a starter you can edit. See [draft_prompt](#drafting-a-prompt-with-draft_prompt) below.
+
+---
+
+## Speed up: `chunk_size` and `max_workers`
+
+`max_workers` sets the size of the threadpool that issues API calls in parallel. `chunk_size` sets how many DataFrame rows are packed into each call (one shared system prompt, `chunk_size` user inputs). Combining them can speed up execution by 100× compared to a naive `for` loop with one row per call. 
+
+```python
+out = extract_df(
+    df, prompt=...,
+    chunk_size=5,        # rows packed into one API call (amortizes the system prompt)
+    max_workers=20,      # API calls in flight at once (a thread pool)
+    backend="openai", model="gpt-4.1-mini",
+    cache_path="big.sqlite",
+)
+```
+
+At ~1 second per call, 100,000 rows:
+
+| Approach | API calls | Wall-clock |
+|---|---|---|
+| One row per call, serial (a plain `for` loop) | 100,000 | ~28 hours |
+| One row per call, `max_workers=20` | 100,000 | ~83 minutes |
+| `chunk_size=5`, `max_workers=20` | 20,000 | **~17 minutes** |
+
+**Tuning:** start `chunk_size=5`, `max_workers=20`. Raise `max_workers` until the log shows rate-limit retries (OpenAI tier-3 handles 60–100; Anthropic tier-2 handles 20–50). 
+
+For ~50% lower per-token cost in exchange for asynchronous execution, see [the batch API](#batch-api-50-cheaper) below.
+
+---
+
+## The results cache DB (`cache_path`)
+
+API calls cost money and time. The cache exists so that an interrupted, edited, or replayed run does not re-send rows that already returned.
+
+`cache_path` is **required**. It is the path to a SQLite file. Each completed row is written to it as soon as it returns from the model. The file is not auto-deleted.
+
+On rerun with the same `cache_path`, rows already in the cache are skipped; only missing rows go to the model.
+
+The schema is three columns:
+
+```sql
+results(row_id TEXT PRIMARY KEY, json_result TEXT, prompt_hash TEXT)
+```
+
+Open in any SQLite browser or `sqlite3 my_experiment.sqlite` to inspect. Force a full re-run: `fresh=True`.
+
+### What if I change the prompt?
+
+Each cached row is stamped with `sha256(prompt)[:16]`. On rerun, rows whose stamp matches the current prompt are skipped; rows stamped with a different prompt are re-executed and **the old row is overwritten** (`INSERT OR REPLACE` on `row_id`).
+
+Three escape hatches:
+
+- Compare prompts side by side: use a different `cache_path` for each prompt version.
+- Fixed a typo and want to keep the cached rows: pass `ignore_prompt_hash=True`.
+- Wipe and redo: `fresh=True`, or delete the `.sqlite` file.
+
+---
+
+## Batch API: ~50% cheaper
+
+OpenAI and Anthropic both expose a Batch API at approximately 50% of the per-token cost. Execution is asynchronous with a stated 24-hour SLA (typical completion is faster). Lifecycle: build request files, submit, poll status, retrieve.
+
+### OpenAI batch
+
+```python
+from lmsyz_genai_ie_rfs import OpenAIBatchExtractor
+
+ext = OpenAIBatchExtractor(batch_root_dir="my_job/")
+
+ext.create_batch_jsonl(               # 1. write JSONL input files
+    dataframe=df, id_col="id", text_col="text",
+    prompt=prompt, job_id="my_job",
+    model_name="gpt-4.1-mini",
+    schema_dict=None,                 # or a strict json_schema dict
+)
+ext.submit_batches("my_job")          # 2. upload + submit
+ext.check_batch_status("my_job",      # 3. poll
+                       continuous=True, interval=60)
+out = ext.retrieve_results_as_dataframe("my_job")   # 4. results as DataFrame
+```
+
+### Anthropic batch
+
+Same lifecycle, different wire format (a JSON request body, not a JSONL file upload):
+
+```python
+from lmsyz_genai_ie_rfs import AnthropicBatchExtractor
+
+ext = AnthropicBatchExtractor(batch_root_dir="my_job/")
+ext.create_batch_requests(..., schema_dict=my_schema)
+ext.submit_batch("my_job")
+ext.check_batch_status("my_job", continuous=True)
+out = ext.retrieve_results_as_dataframe("my_job")
+if out is None:
+    print("Batch not finished yet; check status and retry.")
+else:
+    print(out.head())
+```
+
+All intermediate files (JSONL input, submission manifest, raw results) are written under `batch_root_dir/<job_id>/` and can be inspected directly.
+
+---
+
+## Model providers
+
+Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting `base_url=`. The same `extract_df` call shape works for all of them; only `model`, `base_url`, and `api_key` change.
+
+To switch to Anthropic, change `backend` and `model`:
+
+```python
+out = extract_df(df, prompt=prompt, cache_path="run.sqlite",
+                 backend="anthropic", model="claude-3-5-sonnet-20241022")
+```
+
+| Capability | OpenAI | Anthropic | OpenAI-compatible<br/>(OpenRouter, Gemini, Together, vLLM, ...) |
+|---|---|---|---|
+| Concurrent, no schema     | yes: `json_object`            | yes: plain text (parsed tolerantly) | model-dependent |
+| Concurrent, with schema   | yes: structured outputs       | yes: `tool_use` + prompt caching    | model-dependent (gateway forwards `response_format`) |
+| Batch API (~50% cheaper)  | yes: `OpenAIBatchExtractor`   | yes: `AnthropicBatchExtractor`      | use the gateway's native batch API |
+| Long-prompt caching       | automatic (1024+ tokens)      | explicit `cache_control` on system  | upstream-model-dependent |
+
+### OpenRouter: one key, hundreds of models
+
+OpenRouter is a gateway: a single key + base_url puts you in front of Llama, Mistral, DeepSeek, Qwen, Gemini, Claude, and many more. Swap `model=` for whichever you want.
+
+```python
+out = extract_df(
+    df, prompt=my_prompt,
+    backend="openai",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    model="qwen/qwen-2.5-72b-instruct",          # Qwen
+    # model="deepseek/deepseek-chat",            # DeepSeek
+    # model="meta-llama/llama-3.3-70b-instruct", # Llama
+    # model="mistralai/mistral-large",           # Mistral
+    # model="anthropic/claude-haiku-4.5",        # Claude (proxied)
+    cache_path="openrouter.sqlite",
+)
+```
+
+JSON-mode support varies by model on OpenRouter. If a model returns malformed JSON, switch to one that supports `response_format`, or pass a strict `schema=` so the gateway routes via JSON-schema mode.
+
+### Gemini direct
+
+```python
+out = extract_df(
+    df, prompt=my_prompt,
+    backend="openai", model="gemini-2.5-flash",
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    api_key=os.environ["GEMINI_API_KEY"],
+    cache_path="gemini.sqlite",
+)
+```
+
 ---
 
 ## Drafting a prompt with `draft_prompt`
@@ -159,62 +315,6 @@ Do not include any fields besides input_id, sentiment, and confidence.
 ```
 
 Read the result, tighten enums, add any domain-specific instructions, then pass it to `extract_df(prompt=prompt, ...)`. Defaults are `backend="openai"`, `model="gpt-4.1-mini"`; pass `backend="anthropic"` to use Claude instead. The temperature is fixed at 0, so the same `goal` reproduces the same starting prompt.
-
----
-
-## Speed up: `chunk_size` and `max_workers`
-
-`max_workers` sets the size of the threadpool that issues API calls in parallel. `chunk_size` sets how many DataFrame rows are packed into each call (one shared system prompt, `chunk_size` user inputs). Combining them can speed up execution by 100× compared to a naive `for` loop with one row per call. 
-
-```python
-out = extract_df(
-    df, prompt=...,
-    chunk_size=5,        # rows packed into one API call (amortizes the system prompt)
-    max_workers=20,      # API calls in flight at once (a thread pool)
-    backend="openai", model="gpt-4.1-mini",
-    cache_path="big.sqlite",
-)
-```
-
-At ~1 second per call, 100,000 rows:
-
-| Approach | API calls | Wall-clock |
-|---|---|---|
-| One row per call, serial (a plain `for` loop) | 100,000 | ~28 hours |
-| One row per call, `max_workers=20` | 100,000 | ~83 minutes |
-| `chunk_size=5`, `max_workers=20` | 20,000 | **~17 minutes** |
-
-**Tuning:** start `chunk_size=5`, `max_workers=20`. Raise `max_workers` until the log shows rate-limit retries (OpenAI tier-3 handles 60–100; Anthropic tier-2 handles 20–50). 
-
-For ~50% lower per-token cost in exchange for asynchronous execution, see [the batch path](#the-batch-path) below.
-
----
-
-## The results cache DB (`cache_path`)
-
-API calls cost money and time. The cache exists so that an interrupted, edited, or replayed run does not re-send rows that already returned.
-
-`cache_path` is **required**. It is the path to a SQLite file. Each completed row is written to it as soon as it returns from the model. The file is not auto-deleted.
-
-On rerun with the same `cache_path`, rows already in the cache are skipped; only missing rows go to the model.
-
-The schema is three columns:
-
-```sql
-results(row_id TEXT PRIMARY KEY, json_result TEXT, prompt_hash TEXT)
-```
-
-Open in any SQLite browser or `sqlite3 my_experiment.sqlite` to inspect. Force a full re-run: `fresh=True`.
-
-### What if I change the prompt?
-
-Each cached row is stamped with `sha256(prompt)[:16]`. On rerun, rows whose stamp matches the current prompt are skipped; rows stamped with a different prompt are re-executed and **the old row is overwritten** (`INSERT OR REPLACE` on `row_id`).
-
-Three escape hatches:
-
-- Compare prompts side by side: use a different `cache_path` for each prompt version.
-- Fixed a typo and want to keep the cached rows: pass `ignore_prompt_hash=True`.
-- Wipe and redo: `fresh=True`, or delete the `.sqlite` file.
 
 ---
 
@@ -286,104 +386,6 @@ The file contains a standard OpenAI `response_format` object. Here is one matchi
 The same file works on Anthropic: the library extracts the inner `schema` object and passes it as the `input_schema` of a `tool_use`.
 
 `schema=` accepts a file path, a dict with the contents above, or `None` (the default).
-
----
-
-## Model providers
-
-Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting `base_url=`. The same `extract_df` call shape works for all of them; only `model`, `base_url`, and `api_key` change.
-
-To switch to Anthropic, change `backend` and `model`:
-
-```python
-out = extract_df(df, prompt=prompt, cache_path="run.sqlite",
-                 backend="anthropic", model="claude-3-5-sonnet-20241022")
-```
-
-| Capability | OpenAI | Anthropic | OpenAI-compatible<br/>(OpenRouter, Gemini, Together, vLLM, ...) |
-|---|---|---|---|
-| Concurrent, no schema     | yes: `json_object`            | yes: plain text (parsed tolerantly) | model-dependent |
-| Concurrent, with schema   | yes: structured outputs       | yes: `tool_use` + prompt caching    | model-dependent (gateway forwards `response_format`) |
-| Batch API (~50% cheaper)  | yes: `OpenAIBatchExtractor`   | yes: `AnthropicBatchExtractor`      | use the gateway's native batch API |
-| Long-prompt caching       | automatic (1024+ tokens)      | explicit `cache_control` on system  | upstream-model-dependent |
-
-### OpenRouter: one key, hundreds of models
-
-OpenRouter is a gateway: a single key + base_url puts you in front of Llama, Mistral, DeepSeek, Qwen, Gemini, Claude, and many more. Swap `model=` for whichever you want.
-
-```python
-out = extract_df(
-    df, prompt=my_prompt,
-    backend="openai",
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPENROUTER_API_KEY"],
-    model="qwen/qwen-2.5-72b-instruct",          # Qwen
-    # model="deepseek/deepseek-chat",            # DeepSeek
-    # model="meta-llama/llama-3.3-70b-instruct", # Llama
-    # model="mistralai/mistral-large",           # Mistral
-    # model="anthropic/claude-haiku-4.5",        # Claude (proxied)
-    cache_path="openrouter.sqlite",
-)
-```
-
-JSON-mode support varies by model on OpenRouter. If a model returns malformed JSON, switch to one that supports `response_format`, or pass a strict `schema=` so the gateway routes via JSON-schema mode.
-
-### Gemini direct
-
-```python
-out = extract_df(
-    df, prompt=my_prompt,
-    backend="openai", model="gemini-2.5-flash",
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-    api_key=os.environ["GEMINI_API_KEY"],
-    cache_path="gemini.sqlite",
-)
-```
-
----
-
-## The batch path
-
-OpenAI and Anthropic both expose a Batch API at approximately 50% of the per-token cost. Execution is asynchronous with a stated 24-hour SLA (typical completion is faster). Lifecycle: build request files, submit, poll status, retrieve.
-
-### OpenAI batch
-
-```python
-from lmsyz_genai_ie_rfs import OpenAIBatchExtractor
-
-ext = OpenAIBatchExtractor(batch_root_dir="my_job/")
-
-ext.create_batch_jsonl(               # 1. write JSONL input files
-    dataframe=df, id_col="id", text_col="text",
-    prompt=prompt, job_id="my_job",
-    model_name="gpt-4.1-mini",
-    schema_dict=None,                 # or a strict json_schema dict
-)
-ext.submit_batches("my_job")          # 2. upload + submit
-ext.check_batch_status("my_job",      # 3. poll
-                       continuous=True, interval=60)
-out = ext.retrieve_results_as_dataframe("my_job")   # 4. results as DataFrame
-```
-
-### Anthropic batch
-
-Same lifecycle, different wire format (a JSON request body, not a JSONL file upload):
-
-```python
-from lmsyz_genai_ie_rfs import AnthropicBatchExtractor
-
-ext = AnthropicBatchExtractor(batch_root_dir="my_job/")
-ext.create_batch_requests(..., schema_dict=my_schema)
-ext.submit_batch("my_job")
-ext.check_batch_status("my_job", continuous=True)
-out = ext.retrieve_results_as_dataframe("my_job")
-if out is None:
-    print("Batch not finished yet; check status and retry.")
-else:
-    print(out.head())
-```
-
-All intermediate files (JSONL input, submission manifest, raw results) are written under `batch_root_dir/<job_id>/` and can be inspected directly.
 
 ---
 
