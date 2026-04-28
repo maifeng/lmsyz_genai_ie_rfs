@@ -42,7 +42,7 @@
 # Pre-release on TestPyPI (workshop):
 # !pip install -q --index-url https://test.pypi.org/simple/ \
 #     --extra-index-url https://pypi.org/simple/ \
-#     lmsyz_genai_ie_rfs==0.1.0a2
+#     lmsyz_genai_ie_rfs==0.1.0a3
 
 # %% [markdown]
 # ## 2. Set your API key

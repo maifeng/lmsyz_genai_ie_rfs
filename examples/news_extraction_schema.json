@@ -1,0 +1,47 @@
+{
+  "type": "json_schema",
+  "json_schema": {
+    "name": "news_extraction",
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all_results"],
+      "properties": {
+        "all_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["input_id", "entities", "causal_triples", "sentiment"],
+            "properties": {
+              "input_id": {"type": "string"},
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "type"],
+                  "properties": {
+                    "name": {"type": "string"},
+                    "type": {"type": "string", "enum": ["PERSON", "ORG", "PRODUCT", "DATE", "MONEY", "EVENT"]}
+                  }
+                }
+              },
+              "causal_triples": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {"type": "string"}
+                }
+              },
+              "sentiment": {"type": "string", "enum": ["positive", "neutral", "negative"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}
