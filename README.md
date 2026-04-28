@@ -1,4 +1,4 @@
-# Structured LLM extraction for pandas DataFrames
+# GenAI Information Extraction for pandas DataFrames
 
 **Turn a prompt into a DataFrame of structured information.**
 
