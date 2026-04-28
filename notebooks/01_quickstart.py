@@ -30,19 +30,11 @@
 # %% [markdown]
 # ## 1. Install
 #
-# In Colab, uncomment the install line. If the package is on TestPyPI
-# (workshop pre-release), use the longer index-url form so runtime deps
-# (`openai`, `anthropic`, `pandas`, ...) still resolve from the real PyPI.
+# In Colab, uncomment and run. Pinned to the workshop alpha to keep
+# everyone on the same version.
 
 # %%
-# Production:
-# !pip install -q -U lmsyz_genai_ie_rfs
-
-# %%
-# Pre-release on TestPyPI (workshop):
-# !pip install -q --index-url https://test.pypi.org/simple/ \
-#     --extra-index-url https://pypi.org/simple/ \
-#     lmsyz_genai_ie_rfs==0.1.0a3
+# !pip install -q lmsyz_genai_ie_rfs==0.1.0a3
 
 # %% [markdown]
 # ## 2. Set your API key
