@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1332,10 +1332,13 @@
 costs before committing to a provider.</p>
 <h2 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">&para;</a></h2>
 <p>The three variants below all call <code>extract_df</code> with the same <code>prompt</code> and <code>schema</code> file.
-Only <code>backend</code>, <code>model</code>, <code>api_key</code>, and <code>base_url</code> differ.</p>
+Use a separate cache path for each experiment, along with the appropriate <code>backend</code>, <code>model</code>, <code>api_key</code>, and <code>base_url</code>. Model, provider, schema, and text changes do not invalidate a cache automatically.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_df</span>
+
+<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;doc_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)],</span>
@@ -1379,7 +1382,7 @@ No extra configuration is needed.</p>
 <div class="highlight"><pre><span></span><code><span class="n">out_anthropic</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
     <span class="n">df</span><span class="p">,</span>
     <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
-    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/anthropic.sqlite&quot;</span><span class="p">,</span>    <span class="c1"># separate file: no hash collisions</span>
+    <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/anthropic.sqlite&quot;</span><span class="p">,</span>    <span class="c1"># separate file for this experiment</span>
     <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-haiku-4-5-20251001&quot;</span><span class="p">,</span>
     <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span>
     <span class="n">schema</span><span class="o">=</span><span class="n">SCHEMA</span><span class="p">,</span>
@@ -1443,11 +1446,12 @@ Gemini users is the concurrent path shown above. If you need Gemini batch, you m
 upload the file using the <code>google-generativeai</code> SDK, then pass the resulting file ID to
 <code>openai_client.batches.create(input_file_id=...)</code> manually.</p>
 <h3 id="use-separate-cache_path-files-per-provider">Use separate <code>cache_path</code> files per provider<a class="headerlink" href="#use-separate-cache_path-files-per-provider" title="Permanent link">&para;</a></h3>
-<p>Using different SQLite files per provider (as in the examples above) avoids hash
-collisions and makes side-by-side comparison straightforward. Row IDs are the same across
-files, so a merge on <code>input_id</code> works cleanly. Using the same file is also valid if you
-want all results in one place, but you must use different <code>prompt_hash</code> values to
-distinguish results (which is automatic as long as the prompts differ).</p>
+<p>Use a separate SQLite file for each model, provider, schema, and corpus version.
+The cache key is the row ID, and reuse is gated only by the prompt hash. Keeping the
+same IDs and prompt while changing model or input text reuses earlier results unless
+<code>fresh=True</code> is set. A changed prompt overwrites the existing result for the same ID;
+the database does not preserve version history. Separate files preserve both experiments
+for comparison.</p>
 <h3 id="temperature-note">Temperature note<a class="headerlink" href="#temperature-note" title="Permanent link">&para;</a></h3>
 <p>For <code>o1</code>, <code>o3</code>, and <code>gpt-5</code> model families, the library forces <code>temperature=1.0</code>
 automatically. All other models use <code>temperature=0.0</code>. This is handled internally; you
@@ -1512,7 +1516,7 @@ do not need to pass a temperature argument to <code>extract_df</code>.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

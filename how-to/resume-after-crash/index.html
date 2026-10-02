@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -663,10 +663,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#simulating-a-crash-on-20-rows" class="md-nav__link">
+  <a href="#demonstrating-cache-reuse-on-20-rows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simulating a crash on 20 rows
+        Demonstrating cache reuse on 20 rows
       
     </span>
   </a>
@@ -1106,10 +1106,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#simulating-a-crash-on-20-rows" class="md-nav__link">
+  <a href="#demonstrating-cache-reuse-on-20-rows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simulating a crash on 20 rows
+        Demonstrating cache reuse on 20 rows
       
     </span>
   </a>
@@ -1190,8 +1190,11 @@ rows that already completed, because that wastes tokens and money.</p>
 <p>Pass the same <code>cache_path=</code> when you rerun. The library reads what is already in the
 SQLite file, filters those rows out of the working set, processes only the remainder,
 then returns all rows together.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_df</span>
+
+<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;my_corpus.csv&quot;</span><span class="p">)</span>   <span class="c1"># e.g., 100,000 rows with &quot;id&quot; and &quot;text&quot; columns</span>
 
@@ -1222,9 +1225,12 @@ then returns all rows together.</p>
 <li>Returns all rows, combining newly processed results with the cached ones.</li>
 </ol>
 <p>No code change is needed. Just rerun.</p>
-<h3 id="simulating-a-crash-on-20-rows">Simulating a crash on 20 rows<a class="headerlink" href="#simulating-a-crash-on-20-rows" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<h3 id="demonstrating-cache-reuse-on-20-rows">Demonstrating cache reuse on 20 rows<a class="headerlink" href="#demonstrating-cache-reuse-on-20-rows" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_df</span>
+
+<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Build a small test DataFrame.</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
@@ -1248,8 +1254,8 @@ then returns all rows together.</p>
 <span class="n">out2</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run 2 returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">out2</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows (all from cache)&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>You will see a log line like:</p>
-<div class="highlight"><pre><span></span><code>SqliteCache: skipping 20 / 20 rows (prompt_hash=a3f9...).
+<p>With INFO logging enabled (<code>logging.basicConfig(level=logging.INFO)</code>), a cached rerun reports:</p>
+<div class="highlight"><pre><span></span><code>extract_df: reusing 20 / 20 cached rows.
 </code></pre></div>
 <h3 id="inspecting-cache-contents">Inspecting cache contents<a class="headerlink" href="#inspecting-cache-contents" title="Permanent link">&para;</a></h3>
 <p>You can check how many rows are stored versus how many are in your input DataFrame at any
@@ -1271,7 +1277,7 @@ time without running the full extraction:</p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>runs/extraction.sqlite<span class="w"> </span><span class="s2">&quot;SELECT COUNT(*) FROM results;&quot;</span>
 </code></pre></div>
 <h3 id="the-opposite-lever-freshtrue">The opposite lever: <code>fresh=True</code><a class="headerlink" href="#the-opposite-lever-freshtrue" title="Permanent link">&para;</a></h3>
-<p>If you want to discard the cache and reprocess every row from scratch, pass <code>fresh=True</code>:</p>
+<p>To bypass cached reads and reprocess every input row, pass <code>fresh=True</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
     <span class="n">df</span><span class="p">,</span>
     <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
@@ -1281,12 +1287,10 @@ time without running the full extraction:</p>
 <span class="p">)</span>
 </code></pre></div>
 <p>This is useful when you have changed the model, or when you want a clean comparison
-against a prior run. The old rows in the SQLite file are overwritten as new results come
-in.</p>
+against a prior run. Successful rows overwrite their previous entries. A failed refresh leaves earlier entries intact, so a later ordinary run may reuse them. Use a new cache file when you need an independent experiment.</p>
 <h2 id="explanation">Explanation<a class="headerlink" href="#explanation" title="Permanent link">&para;</a></h2>
 <p><code>cache_path</code> is required, not optional. The library treats it as the results database for
-the job. Every row is written to the file the moment it completes, so partial progress is
-never lost. The file is a plain SQLite database; you can open it in any SQLite browser,
+the job. Valid rows are committed as returned results are processed. Committed progress survives interruption; in-flight requests and uncommitted results may need to be repeated. The file is a plain SQLite database; you can open it in any SQLite browser,
 <code>DB Browser for SQLite</code>, or from Python with the standard <code>sqlite3</code> module.</p>
 <p>The two-run lifecycle looks like this:</p>
 <pre class="mermaid"><code>flowchart TB
@@ -1314,7 +1318,7 @@ get the set of IDs already cached under the current prompt. It removes those row
 the working DataFrame before building the thread pool. The skipped rows are retrieved
 from the cache at the end and merged into the result.</p>
 <p>A chunk that fails is logged and its rows are omitted from the output. You will see
-<code>extract_df: chunk failed; results for this chunk skipped.</code> in the log. Those row IDs
+<code>extract_df: chunk failed; missing results for input_ids: [...]</code> in the log. Those row IDs
 will NOT be in the cache, so the next run will retry them automatically.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1377,7 +1381,7 @@ will NOT be in the cache, so the next run will retry them automatically.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

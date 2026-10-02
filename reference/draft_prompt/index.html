@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1182,7 +1182,7 @@ p = draft_prompt(
         <p>Draft a candidate <code>extract_df</code> prompt from a plain-English goal.</p>
 <p>Sends a one-shot meta-prompt to <code>model</code> and returns the prompt text.
 The result is a starting point; read it and edit before running
-<code>extract_df</code>.</p>
+<code>extract_df</code>. Sampling uses the provider's default temperature.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1238,7 +1238,8 @@ The result is a starting point; read it and edit before running
             <td>
               <div class="doc-md-description">
                 <p>Model identifier for the meta-call (defaults to
-<code>gpt-4.1-mini</code>; any chat model works).</p>
+<code>gpt-4.1-mini</code>). Supply an Anthropic model explicitly when
+using <code>backend="anthropic"</code>.</p>
               </div>
             </td>
             <td>
@@ -1254,7 +1255,7 @@ The result is a starting point; read it and edit before running
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Override the API key from environment.</p>
+                <p>Override the API key from settings (.env or environment).</p>
               </div>
             </td>
             <td>
@@ -1270,7 +1271,8 @@ The result is a starting point; read it and edit before running
             </td>
             <td>
               <div class="doc-md-description">
-                <p>OpenAI base-URL override (for OpenRouter, Gemini compat).</p>
+                <p>Override the OpenAI base URL from settings (for OpenRouter,
+Gemini compatibility).</p>
               </div>
             </td>
             <td>
@@ -1321,6 +1323,30 @@ user sees it without an extra <code>print</code> call.</p>
     </table>
 
 
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the backend is unknown, or the model returns an empty
+response or an explicitly token-truncated response.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
     </div>
 
 </div>
@@ -1337,7 +1363,7 @@ user sees it without an extra <code>print</code> call.</p>
 <li><a href="../extract_df/">extract_df</a>: the primary extraction entry point that consumes the
   prompt produced here.</li>
 <li><a href="../../concepts/prompts-and-schemas/">Prompts and schemas</a>: house-style rules that
-  <code>draft_prompt</code> enforces automatically.</li>
+  <code>draft_prompt</code> asks the model to follow. Review the generated candidate before use.</li>
 </ul>
 
 
@@ -1391,7 +1417,7 @@ user sees it without an extra <code>print</code> call.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

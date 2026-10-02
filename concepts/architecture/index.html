@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1195,7 +1195,7 @@
 
     style C fill:#e8f4f8,stroke:#2c7a96
     style B fill:#fef3e8,stroke:#c16d19</code></pre>
-<p><strong>Concurrent path (<code>extract_df</code>)</strong>: a threadpool fires live API calls in parallel. A 20-row job finishes in seconds. Rows are written to SQLite as they complete, so a crash loses nothing. This is what you want 95% of the time.</p>
+<p><strong>Concurrent path (<code>extract_df</code>)</strong>: a threadpool fires live API calls in parallel. A 20-row job finishes in seconds. Rows are committed to SQLite as results are processed. Committed rows can be reused after a restart; in-flight calls and results waiting to be committed may need rerunning.</p>
 <p><strong>Batch path (<code>OpenAIBatchExtractor</code>, <code>AnthropicBatchExtractor</code>)</strong>: submit a request blob (JSONL for OpenAI, JSON body for Anthropic), wait up to 24 hours, retrieve. About 50% cheaper per token. Use when you have tens of thousands of rows and can schedule overnight processing.</p>
 <hr />
 <h2 id="concurrent-path-internals">Concurrent path internals<a class="headerlink" href="#concurrent-path-internals" title="Permanent link">&para;</a></h2>
@@ -1216,9 +1216,9 @@
 <li><strong>Chunking.</strong> <code>DataFrameIterator</code> slices the working DataFrame into lists of <code>{"input_id": ..., "input_text": ...}</code> dicts, <code>chunk_size</code> rows at a time. Each chunk is one API call.</li>
 <li><strong>Shuffle.</strong> Before chunking, <code>extract_df</code> shuffles the working rows (fixed <code>random_state=42</code>). This distributes variable-length inputs more evenly across workers.</li>
 <li><strong>ThreadPoolExecutor.</strong> All chunks are submitted at once via <code>concurrent.futures.as_completed</code>. Progress is shown with <code>tqdm</code>.</li>
-<li><strong>Retries.</strong> Each call function is decorated with <code>@retry_api_call</code> (tenacity, 5 attempts, exponential backoff 2-30 s) for <code>RateLimitError</code> and <code>APIError</code>. Retries happen at the individual chunk level.</li>
+<li><strong>Retries.</strong> Provider SDKs retry according to their own policies. The package adds up to five attempts with 2-30 second backoff for transient OpenAI failures and Anthropic rate limits; it does not retry permanent OpenAI errors or malformed output. Anthropic server/connection retries stay with its SDK.</li>
 <li><strong>Per-chunk error handling.</strong> If a chunk exhausts all retries, <code>extract_df</code> logs the exception via <code>log.exception</code> and skips that chunk. The other chunks' results are still returned. The returned DataFrame will have fewer rows than the input; check the log.</li>
-<li><strong>Cache write.</strong> Each successful row is written to <code>SqliteCache</code> immediately after the chunk returns, before the next chunk finishes. A crash mid-run loses at most one chunk's work.</li>
+<li><strong>Cache write.</strong> The main thread validates returned IDs and commits valid rows to <code>SqliteCache</code>. Other requests can finish while these writes are in progress. Only committed rows are guaranteed to survive interruption; there is no one-chunk bound on unpersisted work.</li>
 <li><strong>Cache read.</strong> At startup, <code>extract_df</code> reads the set of already-cached row IDs (filtered by <code>prompt_hash</code>) and removes them from the working set.</li>
 </ul>
 <hr />
@@ -1372,7 +1372,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

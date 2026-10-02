@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1240,17 +1240,17 @@
 <hr />
 <h2 id="my-dataframe-came-back-with-fewer-rows-than-i-put-in">My DataFrame came back with fewer rows than I put in<a class="headerlink" href="#my-dataframe-came-back-with-fewer-rows-than-i-put-in" title="Permanent link">&para;</a></h2>
 <p><strong>Symptoms:</strong> <code>extract_df</code> returns a DataFrame with fewer rows than the input. No error was raised.</p>
-<p><strong>Cause:</strong> One or more chunks failed. When a chunk exhausts all retries, <code>extract_df</code> logs the exception via <code>log.exception</code> and skips that chunk. The remaining chunks' results are still returned.</p>
+<p><strong>Cause:</strong> A request failed, the model omitted observations, or response validation rejected malformed, foreign, or duplicate IDs. Failed requests are logged, and valid rows from other responses are still returned. Compare input and returned IDs to locate omissions.</p>
 <p><strong>Fix:</strong></p>
 <ol>
 <li>Enable logging to see the stack trace:
    <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
 </code></pre></div></li>
-<li>Look for lines starting with <code>extract_df: chunk failed; results for this chunk skipped.</code></li>
+<li>Look for lines starting with <code>extract_df: chunk failed; missing results for input_ids: [...]</code></li>
 <li>Common causes:</li>
-<li><strong>Malformed prompt:</strong> the model returned text that is not valid JSON, or returned JSON without the expected <code>all_results</code> key. Inspect the error message for a JSON parse error.</li>
-<li><strong>Rate limits exhausted:</strong> all 5 retry attempts hit <code>RateLimitError</code>. Reduce <code>max_workers</code> or add a delay by using a smaller <code>chunk_size</code>.</li>
+<li><strong>Malformed prompt:</strong> the model returned text that is not valid JSON, or returned rows without valid input IDs. Inspect validation warnings as well as JSON parse errors.</li>
+<li><strong>Rate limits exhausted:</strong> all 5 retry attempts hit <code>RateLimitError</code>. Reduce <code>max_workers</code> and inspect the provider's request/token limits. Smaller chunks do not add a delay and may increase the number of requests.</li>
 <li><strong>Context overflow:</strong> one or more rows in the chunk are too long for the model's context window. Use a smaller <code>chunk_size</code> (so fewer rows per call) or truncate the input text.</li>
 <li>After fixing the cause, rerun the same call with the same <code>cache_path</code>. The rows that already succeeded will be skipped; only the failed rows will be retried.</li>
 </ol>
@@ -1265,11 +1265,11 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">compute_prompt_hash</span><span class="p">(</span><span class="n">old_prompt</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">compute_prompt_hash</span><span class="p">(</span><span class="n">new_prompt</span><span class="p">))</span>
 </code></pre></div>
-   If the two hashes are the same, the prompts are identical (perhaps a whitespace difference you cannot see).</li>
+   Whitespace changes normally change the hash. If the hashes match, first check whether your code actually passed the edited string.</li>
 <li>Inspect the <code>prompt_hash</code> column in the SQLite file:
    <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>runs/cache.sqlite<span class="w"> </span><span class="s2">&quot;SELECT DISTINCT prompt_hash FROM results;&quot;</span>
 </code></pre></div>
-   If you see the new prompt's hash appearing, the gating is working. If only the old hash appears, the new prompt is not producing cache misses (the prompts may be the same).</li>
+   A new prompt hash shows that refreshed rows were saved. If only the old hash remains, check the extraction logs and returned IDs: failed refreshes preserve prior cache rows. Also verify that you passed the edited prompt.</li>
 </ol>
 <p><strong>Fix:</strong> If the prompts are genuinely different and you still see stale results, pass <code>fresh=True</code> to force a full re-run ignoring all cached rows.</p>
 <hr />
@@ -1300,8 +1300,8 @@
 <ul>
 <li>Every object must have <code>"additionalProperties": false</code>.</li>
 <li>Every property must appear in the <code>"required"</code> array.</li>
-<li>No <code>$ref</code> references are allowed (the schema must be fully inlined).</li>
-<li>Limited type set: <code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>, <code>array</code>, <code>object</code>, <code>null</code>. No <code>anyOf</code> on primitives.</li>
+<li>The root must be an object, not a root-level <code>anyOf</code>.</li>
+<li>Nested <code>anyOf</code>, <code>$defs</code>, <code>$ref</code>, and recursive schemas are supported subject to the provider's schema subset. See the <a href="https://developers.openai.com/api/docs/guides/structured-outputs">OpenAI Structured Outputs guide</a> for current model-specific restrictions.</li>
 </ul>
 <p><strong>Fix:</strong> Use the pattern from <code>tests/data/culture_batch_schema.json</code>, which is a known-good example:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1346,7 +1346,7 @@
 <p><strong>Fix:</strong> Add an explicit instruction to the prompt:</p>
 <div class="highlight"><pre><span></span><code>Respond with ONLY a JSON object, no preamble, no markdown fences.
 </code></pre></div>
-<p>Alternatively, pass a <code>schema=</code> argument. With a schema, Anthropic uses forced <code>tool_use</code> and the response is always structured.</p>
+<p>Alternatively, pass a <code>schema=</code> argument. With a schema, Anthropic is asked to use a forced tool response. Missing tool responses are reported as errors.</p>
 <hr />
 <h2 id="anthropic-batch-is-stuck">Anthropic batch is stuck<a class="headerlink" href="#anthropic-batch-is-stuck" title="Permanent link">&para;</a></h2>
 <p><strong>Symptoms:</strong> <code>check_batch_status</code> is reporting <code>in_progress</code> and has been for a long time.</p>
@@ -1485,7 +1485,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

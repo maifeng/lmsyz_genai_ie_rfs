@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1227,7 +1227,7 @@
 
 
 <h1 id="results-database">Results database<a class="headerlink" href="#results-database" title="Permanent link">&para;</a></h1>
-<p>Every completed row is written to a SQLite file as it finishes. This page explains how that works, why <code>cache_path</code> is required, and how prompt-hash gating ensures you never silently reuse stale results.</p>
+<p>Valid returned rows are committed to SQLite as chunks finish. Prompt-hash gating prevents automatic reuse after a prompt change. Changes to input text, model, provider, or schema require a separate cache or an explicit refresh.</p>
 <hr />
 <h2 id="filesystem-requirements">Filesystem requirements<a class="headerlink" href="#filesystem-requirements" title="Permanent link">&para;</a></h2>
 <p>The SQLite file must live on a <strong>local, writable disk</strong>. SQLite uses file-system locks for
@@ -1273,6 +1273,7 @@ write. A path under <code>/tmp</code>, <code>~/</code>, or a project directory o
 <li><strong><code>json_result</code></strong>: The full result dict for this row, serialized as JSON. This is whatever the model returned for this input row (e.g., <code>{"input_id": "42", "culture_type": "innovation_adaptability", "tone": "positive", "confidence": 0.92}</code>).</li>
 <li><strong><code>prompt_hash</code></strong>: The first 16 hex characters of the SHA-256 hash of the prompt that produced this result. Used to detect when the prompt has changed since this row was cached. Can be NULL for rows written by older versions of the library (see migration below).</li>
 </ul>
+<p>Use one cache per corpus/model/schema/provider experiment. Text and configuration changes do not invalidate entries automatically; use a new path or <code>fresh=True</code>.</p>
 <p>Writes use <code>INSERT OR REPLACE</code>, which is SQLite's upsert: if a row with the same <code>row_id</code> already exists, it is overwritten. This means re-running with <code>fresh=True</code> or with a changed prompt writes new results over old ones in place.</p>
 <hr />
 <h2 id="prompt-hash-gating">Prompt-hash gating<a class="headerlink" href="#prompt-hash-gating" title="Permanent link">&para;</a></h2>
@@ -1297,9 +1298,9 @@ write. A path under <code>/tmp</code>, <code>~/</code>, or a project directory o
         CHECK -- "0 cached rows match" --&gt; RERUN["re-run all 20 rows\nunder new prompt P_b"]
         RERUN --&gt; S2[(SQLite: 20 rows\nprompt_hash='ef567890')]
     end</code></pre>
-<p>Changing the prompt means new results are expected. The old rows (written under <code>abcd1234</code>) are not returned; they are simply ignored because their hash does not match. The new results are written under <code>ef567890</code>. Both sets of rows coexist in the database (since <code>row_id</code> is the primary key, and the old rows are not deleted unless you overwrite them).</p>
+<p>Changing the prompt means new results are expected. The old rows (written under <code>abcd1234</code>) are not returned; they are simply ignored because their hash does not match. The new results are written under <code>ef567890</code>. Each successful new result replaces the old result for that <code>row_id</code>. The two versions do not coexist for the same ID. Older hashes can remain only on rows that have not been overwritten.</p>
 <h3 id="the-escape-hatch-ignore_prompt_hashtrue">The escape hatch: <code>ignore_prompt_hash=True</code><a class="headerlink" href="#the-escape-hatch-ignore_prompt_hashtrue" title="Permanent link">&para;</a></h3>
-<p>For non-semantic edits (typo fixes, whitespace changes) where you want to reuse cached rows without re-spending tokens, see <a href="../../how-to/change-prompt-safely/#the-escape-hatch-ignore_prompt_hashtrue">Change the prompt safely</a>.</p>
+<p>For non-semantic edits (typo fixes, whitespace changes) where you want to reuse cached rows without re-spending tokens, see <a href="../../how-to/change-prompt-safely/#reuse-after-a-non-semantic-edit">Change the prompt safely</a>.</p>
 <hr />
 <h2 id="legacy-cache-migration">Legacy cache migration<a class="headerlink" href="#legacy-cache-migration" title="Permanent link">&para;</a></h2>
 <p>Older caches created before the <code>prompt_hash</code> column existed still work. On first open, <code>SqliteCache.__init__</code> runs:</p>
@@ -1377,7 +1378,7 @@ write. A path under <code>/tmp</code>, <code>~/</code>, or a project directory o
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

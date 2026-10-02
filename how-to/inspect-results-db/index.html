@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1374,7 +1374,7 @@ digest of the prompt that produced this row. Rows migrated from a pre-hash cache
 <div class="highlight"><pre><span></span><code><span class="c1">-- Count rows.</span>
 <span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">results</span><span class="p">;</span>
 
-<span class="c1">-- Group by prompt hash to see results from multiple prompt versions.</span>
+<span class="c1">-- Inspect the hashes on current rows (only one result per row_id is stored).</span>
 <span class="k">SELECT</span><span class="w"> </span><span class="n">prompt_hash</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">n_rows</span>
 <span class="k">FROM</span><span class="w"> </span><span class="n">results</span>
 <span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">prompt_hash</span>
@@ -1426,8 +1426,11 @@ digest of the prompt that produced this row. Rows migrated from a pre-hash cache
 <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </code></pre></div>
 <h3 id="finding-missing-rows">Finding missing rows<a class="headerlink" href="#finding-missing-rows" title="Permanent link">&para;</a></h3>
+<p>These counts assume a dedicated cache for this experiment. If you reused a database,
+filter by the current prompt hash and input IDs; counts across all stored rows can
+include other inputs or older prompts.</p>
 <p>Use this pattern to identify which input IDs did not make it into the cache, which
-indicates a chunk failure:</p>
+can indicate a failed request, missing model output, or rejected response ID:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
@@ -1439,7 +1442,7 @@ indicates a chunk failure:</p>
         <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT row_id FROM results&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
     <span class="p">}</span>
 
-<span class="n">input_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+<span class="n">input_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
 <span class="n">missing</span> <span class="o">=</span> <span class="n">input_ids</span> <span class="o">-</span> <span class="n">cached_ids</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input rows  : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1448,7 +1451,7 @@ indicates a chunk failure:</p>
 
 <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample missing IDs:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">missing</span><span class="p">)[:</span><span class="mi">10</span><span class="p">])</span>
-    <span class="n">missing_df</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">missing</span><span class="p">)]</span>
+    <span class="n">missing_df</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">missing</span><span class="p">)]</span>
     <span class="n">missing_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;runs/missing_rows.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="computing-the-success-rate">Computing the success rate<a class="headerlink" href="#computing-the-success-rate" title="Permanent link">&para;</a></h3>
@@ -1456,6 +1459,7 @@ indicates a chunk failure:</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="n">input_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;my_corpus.csv&quot;</span><span class="p">)</span>
+<span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
 <span class="k">with</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;runs/my_results.sqlite&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">con</span><span class="p">:</span>
     <span class="n">cached</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*) FROM results&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -1469,11 +1473,13 @@ indicates a chunk failure:</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="n">input_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;my_corpus.csv&quot;</span><span class="p">)</span>
+<span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
 <span class="k">with</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;runs/my_results.sqlite&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">con</span><span class="p">:</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="s2">&quot;SELECT row_id, json_result FROM results&quot;</span><span class="p">,</span> <span class="n">con</span><span class="p">)</span>
 
 <span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">json_normalize</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="s2">&quot;json_result&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">))</span>
+<span class="n">results_df</span><span class="p">[</span><span class="s2">&quot;input_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_df</span><span class="p">[</span><span class="s2">&quot;input_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
 <span class="c1"># Join on the shared identifier.</span>
 <span class="c1"># (The model copies input_id into the result; row_id is the cache key.)</span>
@@ -1489,16 +1495,18 @@ indicates a chunk failure:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Matched </span><span class="si">{</span><span class="n">n_matched</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="chunk-level-vs-row-level-failures">Chunk-level vs row-level failures<a class="headerlink" href="#chunk-level-vs-row-level-failures" title="Permanent link">&para;</a></h3>
-<p>All rows in a chunk share the same fate: if a chunk fails, all its rows are absent from
-the cache. The log line looks like:</p>
-<div class="highlight"><pre><span></span><code>extract_df: chunk failed; results for this chunk skipped.
+<p>A failed request omits its chunk; a partially valid response can still contribute valid
+rows. Response validation reports rejected or missing IDs separately. A request failure
+has a log line like:</p>
+<div class="highlight"><pre><span></span><code>extract_df: chunk failed; missing results for input_ids: [...]
 </code></pre></div>
-<p>followed by the exception traceback. A chunk typically contains <code>chunk_size</code> rows
-(default 5). If you see a cluster of consecutive missing IDs of size 5, a single chunk
-failed. Retrying the full job will re-send only the missing chunks.</p>
-<p>If a chunk fails repeatedly (it will be retried up to 5 times with exponential backoff),
+<p>followed by the exception traceback. Inputs are shuffled before chunking, so missing
+IDs need not be consecutive. Rerunning with the same prompt/cache resends missing rows,
+possibly grouped into different chunks. A prior successful entry can remain after a
+failed <code>fresh=True</code> refresh; inspect that run's returned IDs and logs as well as the DB.</p>
+<p>If a request keeps failing after applicable transient-error retries,
 the rows stay absent. Narrow the problem by running those specific rows in isolation:</p>
-<div class="highlight"><pre><span></span><code><span class="n">retry_df</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">missing</span><span class="p">)]</span>
+<div class="highlight"><pre><span></span><code><span class="n">retry_df</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">missing</span><span class="p">)]</span>
 
 <span class="n">out_retry</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
     <span class="n">retry_df</span><span class="p">,</span>
@@ -1568,7 +1576,7 @@ the rows stay absent. Narrow the problem by running those specific rows in isola
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

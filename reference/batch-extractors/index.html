@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1553,7 +1553,7 @@ reduce this value if you hit those limits.</p>
 
 
 <h3 id="lmsyz_genai_ie_rfs.OpenAIBatchExtractor.create_batch_jsonl" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">create_batch_jsonl</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">id_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">exclude_processed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">schema_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+            <code class="highlight language-python"><span class="n">create_batch_jsonl</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">id_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">exclude_processed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">schema_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
 <a href="#lmsyz_genai_ie_rfs.OpenAIBatchExtractor.create_batch_jsonl" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1604,7 +1604,7 @@ and prevents system-prompt caching. See code review P0-1.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Column name for row identifiers.</p>
+                <p>Column name for non-null row IDs, unique after string conversion.</p>
               </div>
             </td>
             <td>
@@ -1728,7 +1728,7 @@ and prevents system-prompt caching. See code review P0-1.</p>
                 <code>schema_dict</code>
             </td>
             <td>
-                  <code><span title="dict">dict</span> | None</code>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1808,7 +1808,9 @@ uses {"type": "json_object"}.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Poll batch status and download results when complete.</p>
+        <p>Poll batch status and download available output and error files.</p>
+<p>Continuous polling stops when every batch is completed, failed, expired,
+or cancelled. Successful partial output remains available for parsing.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1882,7 +1884,7 @@ uses {"type": "json_object"}.</p>
 
 
 <h3 id="lmsyz_genai_ie_rfs.OpenAIBatchExtractor.retrieve_results_as_dataframe" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">retrieve_results_as_dataframe</span><span class="p">(</span><span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span></code>
+            <code class="highlight language-python"><span class="n">retrieve_results_as_dataframe</span><span class="p">(</span><span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span></code>
 
 <a href="#lmsyz_genai_ie_rfs.OpenAIBatchExtractor.retrieve_results_as_dataframe" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1890,6 +1892,8 @@ uses {"type": "json_object"}.</p>
     <div class="doc doc-contents ">
 
         <p>Parse completed batch result JSONL files into a DataFrame.</p>
+<p>Unusable records and non-object rows are logged and skipped. Valid rows
+from the same file remain available; raw records are preserved on disk.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1934,7 +1938,7 @@ uses {"type": "json_object"}.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="pandas.DataFrame">DataFrame</span>]</code>
+                  <code><span title="pandas.DataFrame">DataFrame</span> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1969,7 +1973,7 @@ uses {"type": "json_object"}.</p>
 
 
         <p>Submit, monitor, and retrieve Anthropic Message Batches API jobs from a DataFrame.</p>
-<p>Lifecycle (parallels <code>GPTBatchJobClassifier</code> but with a different wire format):</p>
+<p>Lifecycle (parallels <code>OpenAIBatchExtractor</code> but with a different wire format):</p>
 <ol>
 <li><code>create_batch_requests</code>: builds an in-memory list of requests and writes
    it to <code>batch_input/requests.json</code> for inspection / reproducibility.</li>
@@ -1985,8 +1989,8 @@ uses {"type": "json_object"}.</p>
     submission.json         -- returned batch manifest (id, status, ...)
 batch_output/
     results.jsonl           -- raw streamed results from Anthropic
-    errors.txt              -- per-request error payloads, if any
 </code></pre></div>
+<p>Failed requests remain in the raw results file and are reported through logging.</p>
 
 
 <p><span class="doc-section-title">Attributes:</span></p>
@@ -2166,7 +2170,7 @@ model returns free-form text.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Column name for row identifiers.</p>
+                <p>Column name for non-null row IDs, unique after string conversion.</p>
               </div>
             </td>
             <td>
@@ -2417,7 +2421,7 @@ Claude 4.x model output limits of 64K).</p>
 
     <div class="doc doc-contents ">
 
-        <p>Poll batch status. Returns the terminal status string.</p>
+        <p>Poll batch status and optionally wait until the batch ends.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2514,7 +2518,7 @@ Claude 4.x model output limits of 64K).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The terminal <code>processing_status</code> from Anthropic: one of</p>
+                <p>The latest <code>processing_status</code>: "in_progress", "canceling", or</p>
               </div>
             </td>
           </tr>
@@ -2524,7 +2528,17 @@ Claude 4.x model output limits of 64K).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>"in_progress", "canceling", "ended".</p>
+                <p>"ended". Continuous polling returns only "ended"; cancellation</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>remains in progress while the status is "canceling".</p>
               </div>
             </td>
           </tr>
@@ -2581,6 +2595,8 @@ Claude 4.x model output limits of 64K).</p>
     <div class="doc doc-contents ">
 
         <p>Stream results and flatten tool_use outputs into a DataFrame.</p>
+<p>Raw results replace the local file only after the stream completes.
+A failed download preserves the previous file and raises the error.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -2729,7 +2745,7 @@ returned DataFrame's <code>text</code> column.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1125,7 +1125,8 @@ supplied, it enforces structure on both providers: OpenAI via
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Input DataFrame. Must contain <code>id_col</code> and <code>text_col</code>.</p>
+                <p>Input DataFrame. Must contain <code>id_col</code> and <code>text_col</code>.
+IDs must be non-null, non-empty, and unique after string conversion.</p>
               </div>
             </td>
             <td>
@@ -1158,9 +1159,9 @@ supplied, it enforces structure on both providers: OpenAI via
             <td>
               <div class="doc-md-description">
                 <p>Optional JSON schema. Accepts <code>None</code>, a dict (full OpenAI
-wrapper, a response schema with <code>all_results</code>, or a row schema
-that will be auto-wrapped), or a <code>str</code>/<code>Path</code> pointing to a
-JSON file containing any of the above.</p>
+wrapper or a complete response schema with <code>all_results</code>), or a
+<code>str</code>/<code>Path</code> pointing to a JSON file containing either form.
+Individual row schemas are not automatically wrapped.</p>
               </div>
             </td>
             <td>
@@ -1362,8 +1363,8 @@ way (e.g., typo fix).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A pre-built SDK client. When given, <code>backend</code>, <code>api_key</code>,
-and <code>base_url</code> are only used to pick the call helper.</p>
+                <p>A pre-built SDK client. <code>backend</code> selects the call helper;
+<code>api_key</code> and <code>base_url</code> are ignored when a client is supplied.</p>
               </div>
             </td>
             <td>
@@ -1389,7 +1390,7 @@ and <code>base_url</code> are only used to pick the call helper.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>DataFrame of result dicts, one row per input row. Rows whose chunks</p>
+                <p>DataFrame of valid result dicts, at most one row per input row.</p>
               </div>
             </td>
           </tr>
@@ -1399,7 +1400,27 @@ and <code>base_url</code> are only used to pick the call helper.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>fail are logged and omitted; remaining chunks' results are returned.</p>
+                <p>Malformed rows, foreign IDs, every occurrence of duplicate output IDs,</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>and missing results are logged and omitted. Valid results are cached.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Failed chunks do not discard results from successful chunks.</p>
               </div>
             </td>
           </tr>
@@ -1435,7 +1456,7 @@ and <code>base_url</code> are only used to pick the call helper.</p>
 </tr>
 <tr>
 <td>Everything else</td>
-<td>0.0 (deterministic)</td>
+<td>0.0 (does not guarantee identical output)</td>
 </tr>
 </tbody>
 </table>
@@ -1447,7 +1468,7 @@ affected families.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../how-to/resume-after-crash/">Resume after a crash</a>: how <code>cache_path</code> enables
-  zero-loss restarts.</li>
+  reuse of committed results after a restart.</li>
 <li><a href="../../how-to/change-prompt-safely/">Change the prompt safely</a>: how prompt-hash
   invalidation works and when to use <code>ignore_prompt_hash=True</code>.</li>
 <li><a href="../../how-to/switch-providers/">Switch providers</a>: switching between OpenAI, Anthropic,
@@ -1505,7 +1526,7 @@ affected families.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

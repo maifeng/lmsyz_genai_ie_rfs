@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -612,10 +612,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#problem" class="md-nav__link">
+  <a href="#reprocess-after-a-prompt-edit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem
+        Reprocess after a prompt edit
       
     </span>
   </a>
@@ -623,46 +623,39 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#solution" class="md-nav__link">
+  <a href="#compare-experiments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Solution
+        Compare experiments
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Solution">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#the-escape-hatch-ignore_prompt_hashtrue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The escape hatch: ignore_prompt_hash=True
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#explanation" class="md-nav__link">
+  <a href="#reuse-after-a-non-semantic-edit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explanation
+        Reuse after a non-semantic edit
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Explanation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#force-a-refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force a refresh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-caches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -670,22 +663,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#comparing-two-prompt-versions-side-by-side" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Comparing two prompt versions side by side
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1089,10 +1066,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#problem" class="md-nav__link">
+  <a href="#reprocess-after-a-prompt-edit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem
+        Reprocess after a prompt edit
       
     </span>
   </a>
@@ -1100,46 +1077,39 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#solution" class="md-nav__link">
+  <a href="#compare-experiments" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Solution
+        Compare experiments
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Solution">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#the-escape-hatch-ignore_prompt_hashtrue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The escape hatch: ignore_prompt_hash=True
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#explanation" class="md-nav__link">
+  <a href="#reuse-after-a-non-semantic-edit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explanation
+        Reuse after a non-semantic edit
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Explanation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#force-a-refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force a refresh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-caches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1147,22 +1117,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#comparing-two-prompt-versions-side-by-side" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Comparing two prompt versions side by side
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1195,132 +1149,81 @@
 
 
 <h1 id="change-the-prompt-safely">Change the prompt safely<a class="headerlink" href="#change-the-prompt-safely" title="Permanent link">&para;</a></h1>
-<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
-<p>You edited your prompt. Will the library reuse your old results from the cache, or will
-it re-run all the rows?</p>
-<h2 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">&para;</a></h2>
-<p>By default, no reuse. Changing the prompt invalidates the cache for every row. The
-library computes a hash of the prompt at the start of each run and only skips rows whose
-cached entry was produced by the same hash. Change one character and every row
-re-executes.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<p>Changing the prompt causes a cache miss for rows stored under a different prompt hash.
+A successful new result overwrites the earlier result for the same row ID. The database
+stores one current result per ID, so use separate cache files to preserve experiments.</p>
+<h2 id="reprocess-after-a-prompt-edit">Reprocess after a prompt edit<a class="headerlink" href="#reprocess-after-a-prompt-edit" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_df</span>
 
+<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;doc_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)],</span>
-    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;The team delivered the product on time.&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Management values transparency and ethics.&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Rapid iteration drives our innovation culture.&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Customer feedback shapes every roadmap decision.&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Performance targets are reviewed quarterly.&quot;</span><span class="p">,</span>
-    <span class="p">],</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;doc_1&quot;</span><span class="p">,</span> <span class="s2">&quot;doc_2&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;The team delivered on time.&quot;</span><span class="p">,</span> <span class="s2">&quot;Management ignored feedback.&quot;</span><span class="p">],</span>
 <span class="p">})</span>
 
+<span class="n">prompt_v1</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">For each row, copy input_id verbatim and return sentiment as</span>
+<span class="s1">&quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
+<span class="s1">Return a JSON object with key &quot;all_results&quot; containing one object per input row.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="n">prompt_v2</span> <span class="o">=</span> <span class="n">prompt_v1</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Prefer &quot;neutral&quot; when the evidence is ambiguous.&#39;</span>
+
 <span class="n">CACHE</span> <span class="o">=</span> <span class="s2">&quot;runs/prompt_demo.sqlite&quot;</span>
-
-<span class="n">prompt_v1</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">For each row, copy input_id and classify as &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
-<span class="s2">Return {&quot;all_results&quot;: [...]}.</span>
-<span class="s2">&quot;&quot;&quot;</span>
-
-<span class="c1"># Run 1: fills the cache with prompt_v1&#39;s hash.</span>
-<span class="n">out1</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v1</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Run 1:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">out1</span><span class="p">),</span> <span class="s2">&quot;rows&quot;</span><span class="p">)</span>
-
-<span class="n">prompt_v2</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">For each row, copy input_id and classify as &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
-<span class="s2">Be conservative: prefer &quot;neutral&quot; when uncertain.</span>
-<span class="s2">Return {&quot;all_results&quot;: [...]}.</span>
-<span class="s2">&quot;&quot;&quot;</span>
-
-<span class="c1"># Run 2: different prompt hash -&gt; all 5 rows re-execute.</span>
-<span class="n">out2</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Run 2:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">out2</span><span class="p">),</span> <span class="s2">&quot;rows (re-executed, new prompt)&quot;</span><span class="p">)</span>
+<span class="n">out1</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v1</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
+<span class="n">out2</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>After both runs the SQLite file holds rows from both prompts. You can inspect them:</p>
+<p>After both runs succeed, the cache contains two rows with <code>prompt_v2</code>'s hash. It does
+not retain the earlier versions. If part of the second run fails, the database can
+contain a mixture: updated IDs under the new hash and older IDs under the old hash.
+Lookups for <code>prompt_v2</code> skip only rows whose stored hash matches it.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
 
 <span class="k">with</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">CACHE</span><span class="p">)</span> <span class="k">as</span> <span class="n">con</span><span class="p">:</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
         <span class="s2">&quot;SELECT prompt_hash, COUNT(*) FROM results GROUP BY prompt_hash&quot;</span>
     <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">hash_val</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  prompt_hash=</span><span class="si">{</span><span class="n">hash_val</span><span class="si">}</span><span class="s2">  rows=</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="c1"># prompt_hash=3c7a9f0d12e4b816  rows=5</span>
-<span class="c1"># prompt_hash=9e2d0a5f71c3b48a  rows=5</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
 </code></pre></div>
-<p>Each prompt's results live at its own hash. They do not overwrite each other.</p>
-<h3 id="the-escape-hatch-ignore_prompt_hashtrue">The escape hatch: <code>ignore_prompt_hash=True</code><a class="headerlink" href="#the-escape-hatch-ignore_prompt_hashtrue" title="Permanent link">&para;</a></h3>
-<p>Sometimes a prompt edit is non-semantic: you fixed a typo, adjusted whitespace, or
-renamed a heading without changing the task. In that case you want to reuse the prior
-rows without spending tokens. Pass <code>ignore_prompt_hash=True</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="n">prompt_v2_typo_fixed</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">For each row, copy input_id and classify as &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
-<span class="s2">Be conservative: prefer &quot;neutral&quot; when uncertain.</span>
-<span class="s2">Return {&quot;all_results&quot;: [...]}.</span>
-<span class="s2">&quot;&quot;&quot;</span>
-
-<span class="n">out3</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
-    <span class="n">df</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2_typo_fixed</span><span class="p">,</span>
-    <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
-    <span class="n">ignore_prompt_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># reuse cached rows regardless of which prompt produced them</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Run 3:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">out3</span><span class="p">),</span> <span class="s2">&quot;rows (served from cache)&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p>When <code>ignore_prompt_hash=True</code>, <code>all_ids()</code> is called without a hash filter, so any
-cached row is eligible for reuse. New results produced in this run are still written with
-the current prompt's hash, so future runs without the flag will see the new hash correctly.</p>
-<p>Use this flag deliberately. It is intended for the case where you are confident the
-semantic meaning of the prompt did not change.</p>
-<h2 id="explanation">Explanation<a class="headerlink" href="#explanation" title="Permanent link">&para;</a></h2>
-<p>The prompt hash is computed once per <code>extract_df</code> call using SHA-256 truncated to 16 hex
-characters. It is stable across Python versions and machines because it operates on the
-UTF-8 byte representation of the prompt string:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
-<span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">prompt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span>
-</code></pre></div>
-<p>On a cache lookup, the library calls <code>SqliteCache.all_ids(prompt_hash=current_hash)</code>.
-Only IDs whose stored <code>prompt_hash</code> matches are skipped. All other IDs are added to the
-working set and sent to the API.</p>
-<p>This means the same <code>cache_path</code> can hold results from multiple prompt versions without
-any of them interfering. The SQLite file is a log, not a single-version store. You can
-query by <code>prompt_hash</code> to compare results across prompt versions (see the SQL snippet
-above).</p>
-<h3 id="legacy-caches">Legacy caches<a class="headerlink" href="#legacy-caches" title="Permanent link">&para;</a></h3>
-<p>If you have a SQLite file that was created before the <code>prompt_hash</code> column existed, the
-library migrates it automatically with <code>ALTER TABLE ... ADD COLUMN prompt_hash TEXT</code>. The
-migrated rows have <code>NULL</code> for the hash and are treated as not matching any specific
-prompt, so they will be re-processed on the next run. This is the safe default.</p>
-<h3 id="comparing-two-prompt-versions-side-by-side">Comparing two prompt versions side by side<a class="headerlink" href="#comparing-two-prompt-versions-side-by-side" title="Permanent link">&para;</a></h3>
-<p>Use separate <code>cache_path</code> files per prompt for clean separation:</p>
-<div class="highlight"><pre><span></span><code><span class="n">out_v1</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v1</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/v1.sqlite&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
-<span class="n">out_v2</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/v2.sqlite&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
+<p>The hash is <code>sha256(prompt.encode("utf-8")).hexdigest()[:16]</code>. Whitespace changes
+normally change it. The cache does not automatically invalidate when the text, model,
+provider, endpoint, or schema changes while IDs and prompt remain the same.</p>
+<h2 id="compare-experiments">Compare experiments<a class="headerlink" href="#compare-experiments" title="Permanent link">&para;</a></h2>
+<p>Use one cache per prompt/model/schema/corpus combination:</p>
+<div class="highlight"><pre><span></span><code><span class="n">out_v1</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v1</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/v1.sqlite&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
+<span class="n">out_v2</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;runs/v2.sqlite&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">)</span>
 
 <span class="n">merged</span> <span class="o">=</span> <span class="n">out_v1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">out_v2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;input_id&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;_v2&quot;</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">merged</span><span class="p">[[</span><span class="s2">&quot;input_id&quot;</span><span class="p">,</span> <span class="s2">&quot;sentiment_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;sentiment_v2&quot;</span><span class="p">]])</span>
 </code></pre></div>
-<p>Or keep them in one file and query by hash:</p>
-<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
-<span class="w">    </span><span class="n">a</span><span class="p">.</span><span class="n">row_id</span><span class="p">,</span>
-<span class="w">    </span><span class="n">json_extract</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">json_result</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;$.sentiment&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">sentiment_v1</span><span class="p">,</span>
-<span class="w">    </span><span class="n">json_extract</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">json_result</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;$.sentiment&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">sentiment_v2</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="n">a</span>
-<span class="k">JOIN</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">row_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">row_id</span>
-<span class="k">WHERE</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">prompt_hash</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;3c7a9f0d12e4b816&#39;</span>
-<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">prompt_hash</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;9e2d0a5f71c3b48a&#39;</span><span class="p">;</span>
+<p>This preserves both results for each observation. A self-join within one cache cannot
+recover overwritten versions. Back up existing files before reusing them if needed.</p>
+<h2 id="reuse-after-a-non-semantic-edit">Reuse after a non-semantic edit<a class="headerlink" href="#reuse-after-a-non-semantic-edit" title="Permanent link">&para;</a></h2>
+<p>If you intentionally want to keep results after a typo or formatting correction,
+pass <code>ignore_prompt_hash=True</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">out3</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt_v2</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
+    <span class="n">ignore_prompt_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
 </code></pre></div>
+<p>Existing rows keep their original hashes. Only newly processed rows are stamped with
+the current prompt hash. A later call without <code>ignore_prompt_hash=True</code> resumes normal
+hash filtering.</p>
+<h2 id="force-a-refresh">Force a refresh<a class="headerlink" href="#force-a-refresh" title="Permanent link">&para;</a></h2>
+<p><code>fresh=True</code> bypasses cache reads for that call and processes all input rows.
+Successful rows overwrite earlier results. Failed rows leave previous entries intact,
+and a later ordinary call can reuse those entries when their hashes match. To start
+with an empty database, choose a new path or explicitly delete the old file.</p>
+<h2 id="legacy-caches">Legacy caches<a class="headerlink" href="#legacy-caches" title="Permanent link">&para;</a></h2>
+<p>Caches without a <code>prompt_hash</code> column are migrated automatically. Their existing rows
+have a null hash and are reprocessed on a hash-filtered lookup. Passing
+<code>ignore_prompt_hash=True</code> deliberately permits their reuse.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../resume-after-crash/">Resume after a crash</a>: how the same cache gating enables
-  crash recovery.</li>
-<li><a href="../inspect-results-db/">Inspect the results database</a>: querying the SQLite file
-  directly, including grouping by <code>prompt_hash</code>.</li>
-<li><a href="../../reference/extract_df/">Reference: <code>extract_df</code></a></li>
-<li><a href="../../concepts/results-db/">Concepts: results database</a></li>
+<li><a href="../resume-after-crash/">Resume after a crash</a></li>
+<li><a href="../inspect-results-db/">Inspect the results database</a></li>
+<li><a href="../../concepts/results-db/">Results database</a></li>
 </ul>
 
 
@@ -1374,7 +1277,7 @@ prompt, so they will be re-processed on the next run. This is the safe default.<
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

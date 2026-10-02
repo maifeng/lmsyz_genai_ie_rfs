@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1317,7 +1317,7 @@
 <hr />
 <h2 id="why-retries-happen-on-individual-chunks-not-entire-jobs">Why retries happen on individual chunks, not entire jobs<a class="headerlink" href="#why-retries-happen-on-individual-chunks-not-entire-jobs" title="Permanent link">&para;</a></h2>
 <p>A transient <code>RateLimitError</code> on one chunk should not fail the other 99 chunks.</p>
-<p><code>@retry_api_call</code> wraps <code>_call_openai</code> and <code>_call_anthropic</code> individually. Each chunk gets 5 attempts with exponential backoff. If a chunk exhausts all 5 attempts, <code>extract_df</code> catches the exception in the <code>as_completed</code> loop, logs it via <code>log.exception</code>, and continues. The other chunks' results are still written to cache and returned.</p>
+<p><code>@retry_api_call</code> wraps <code>_call_openai</code> and <code>_call_anthropic</code> individually. Eligible transient failures receive up to five outer attempts with exponential backoff, in addition to SDK retries. Permanent OpenAI errors and malformed responses do not receive these retries. If a request still fails, <code>extract_df</code> catches the exception in the <code>as_completed</code> loop, logs it via <code>log.exception</code>, and continues. The other chunks' results are still written to cache and returned.</p>
 <p>The alternative (retry the entire job) would mean one bad row's transient error re-processes everything. That is the wrong trade-off for a library where a "job" can be thousands of rows.</p>
 <p>If a chunk fails permanently (bad content, context overflow, content policy), the partial results are still returned and the missing rows are visible in the log. The researcher can inspect the failing chunk, fix the input, and rerun.</p>
 <hr />
@@ -1388,7 +1388,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
@@ -500,6 +500,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#citation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -515,6 +526,17 @@
     <span class="md-ellipsis">
       
         GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development and tests
       
     </span>
   </a>
@@ -1442,6 +1464,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#citation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1457,6 +1490,17 @@
     <span class="md-ellipsis">
       
         GitHub
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development and tests
       
     </span>
   </a>
@@ -1506,7 +1550,7 @@
 <p>A general-purpose library for <strong>prompt-based information extraction over DataFrames</strong>, with concurrent and batch execution against OpenAI, Anthropic, and models on OpenRouter.</p>
 <p><a href="https://colab.research.google.com/github/maifeng/lmsyz_genai_ie_rfs/blob/main/notebooks/00_colab_quickstart.ipynb"><img alt="Open in Colab" src="https://img.shields.io/badge/Colab-60--second%20quickstart-orange?logo=googlecolab&amp;logoColor=white" /></a>
 <a href="https://pypi.org/project/lmsyz_genai_ie_rfs/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/lmsyz_genai_ie_rfs.svg" /></a>
-<a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a></p>
+<a href="https://github.com/maifeng/lmsyz_genai_ie_rfs/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a></p>
 <p>Cite as: Li, Mai, Shen, Yang, Zhang (2026), RFS. Full citation and BibTeX at the <a href="#citation">bottom of this page</a>.</p>
 <hr />
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
@@ -1596,10 +1640,10 @@
 <span class="s2">1. input_id: Copy the input_id from the row verbatim.</span>
 <span class="s2">2. entities: List every named entity mentioned in the text. For each entity give:</span>
 <span class="s2">   - name: the surface form as it appears in the text.</span>
-<span class="s2">   - type: one of &quot;PERSON&quot;, &quot;ORG&quot;, &quot;PRODUCT&quot;, &quot;DATE&quot;, &quot;MONEY&quot;.</span>
+<span class="s2">   - type: one of &quot;PERSON&quot;, &quot;ORG&quot;, &quot;PRODUCT&quot;, &quot;DATE&quot;, &quot;MONEY&quot;, &quot;EVENT&quot;.</span>
 <span class="s2">3. causal_triples: If the text explicitly states a cause and effect, list each as a</span>
 <span class="s2">   three-element array [&quot;cause&quot;, &quot;relation&quot;, &quot;effect&quot;]. If there is no explicit</span>
-<span class="s2">   causation, return an empty list []. All elements should be concisely summarized, in three words or less. </span>
+<span class="s2">   causation, return an empty list []. All elements should be concisely summarized, in three words or less.</span>
 <span class="s2">4. sentiment: One of &quot;positive&quot;, &quot;neutral&quot;, or &quot;negative&quot;.</span>
 
 <span class="s2">Return a JSON object with this EXACT structure:</span>
@@ -1612,7 +1656,7 @@
 <span class="s2">        {&quot;name&quot;: &quot;Apple&quot;,    &quot;type&quot;: &quot;ORG&quot;},</span>
 <span class="s2">        {&quot;name&quot;: &quot;Tim Cook&quot;, &quot;type&quot;: &quot;PERSON&quot;}</span>
 <span class="s2">      ],</span>
-<span class="s2">      &quot;causal_triples&quot;: [[cause_1, relation_1, effect_1], [cause_2, relation_2, effect_2], ...],</span>
+<span class="s2">      &quot;causal_triples&quot;: [[&quot;acquisition&quot;, &quot;enabled&quot;, &quot;market entry&quot;]],</span>
 <span class="s2">      &quot;sentiment&quot;: &quot;positive/neutral/negative&quot;</span>
 <span class="s2">    }</span>
 <span class="s2">  ]</span>
@@ -1623,9 +1667,9 @@
 
 <span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
     <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
-    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> 
+    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="n">max_workers</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> 
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>
     <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>
     <span class="n">cache_path</span><span class="o">=</span><span class="s2">&quot;demo.sqlite&quot;</span><span class="p">,</span>
     <span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">text_col</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
@@ -1637,12 +1681,12 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span>
 </code></pre></div>
 <p>Save:</p>
-<div class="highlight"><pre><span></span><code><span class="n">out</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;extraction.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>                          
+<div class="highlight"><pre><span></span><code><span class="n">out</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;extraction.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Tip:</strong> No prompt yet? <code>draft_prompt(goal="...")</code> returns a starter you can edit. See <a href="#drafting-a-prompt-with-draft_prompt">draft_prompt</a> below.</p>
 <hr />
 <h2 id="speed-up-chunk_size-and-max_workers">Speed up: <code>chunk_size</code> and <code>max_workers</code><a class="headerlink" href="#speed-up-chunk_size-and-max_workers" title="Permanent link">&para;</a></h2>
-<p><code>max_workers</code> sets the size of the threadpool that issues API calls in parallel. <code>chunk_size</code> sets how many DataFrame rows are packed into each call (one shared system prompt, <code>chunk_size</code> user inputs). Combining them can speed up execution by 100× compared to a naive <code>for</code> loop with one row per call. </p>
+<p><code>max_workers</code> sets the size of the threadpool that issues API calls in parallel. <code>chunk_size</code> sets how many DataFrame rows are packed into each call (one shared system prompt, <code>chunk_size</code> user inputs). Combining them can speed up execution by 100× compared to a naive <code>for</code> loop with one row per call.</p>
 <div class="highlight"><pre><span></span><code><span class="n">out</span> <span class="o">=</span> <span class="n">extract_df</span><span class="p">(</span>
     <span class="n">df</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=...</span><span class="p">,</span>
     <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>        <span class="c1"># rows packed into one API call (amortizes the system prompt)</span>
@@ -1678,13 +1722,22 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Tuning:</strong> start <code>chunk_size=5</code>, <code>max_workers=20</code>. Raise <code>max_workers</code> until the log shows rate-limit retries (OpenAI tier-3 handles 60–100; Anthropic tier-2 handles 20–50). </p>
+<p><strong>Tuning:</strong> start <code>chunk_size=5</code>, <code>max_workers=20</code>. Adjust <code>max_workers</code> for the request and token limits on your specific account and model; reduce it if rate-limit retries accumulate.</p>
 <p>For ~50% lower per-token cost in exchange for asynchronous execution, see <a href="#batch-api-50-cheaper">the batch API</a> below.</p>
 <hr />
 <h2 id="the-results-cache-db-cache_path">The results cache DB (<code>cache_path</code>)<a class="headerlink" href="#the-results-cache-db-cache_path" title="Permanent link">&para;</a></h2>
 <p>API calls cost money and time. The cache exists so that an interrupted, edited, or replayed run does not re-send rows that already returned.</p>
 <p><code>cache_path</code> is <strong>required</strong>. It is the path to a SQLite file. Each completed row is written to it as soon as it returns from the model. The file is not auto-deleted.</p>
-<p>On rerun with the same <code>cache_path</code>, rows already in the cache are skipped; only missing rows go to the model.</p>
+<p>On rerun with the same <code>cache_path</code> and prompt, matching cached rows are skipped.
+Use a separate cache file for each corpus/model/schema/provider experiment: these settings
+and the input text are not part of the cache key. After editing text under existing IDs,
+use a new cache file or <code>fresh=True</code>.</p>
+<p>Input IDs must be non-null, nonempty, and unique after conversion to strings. Both
+<code>chunk_size</code> and <code>max_workers</code> must be positive integers. Returned rows with malformed,
+foreign, or duplicate IDs are excluded and logged; missing IDs are reported. Valid rows
+are still returned and cached. Check completeness before joining results to research data.
+Create the parent directory before using a nested cache path, for example
+<code>Path("runs").mkdir(parents=True, exist_ok=True)</code> after <code>from pathlib import Path</code>.</p>
 <p>The schema is three columns:</p>
 <div class="highlight"><pre><span></span><code><span class="n">results</span><span class="p">(</span><span class="n">row_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w"> </span><span class="n">json_result</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w"> </span><span class="n">prompt_hash</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">)</span>
 </code></pre></div>
@@ -1695,7 +1748,8 @@
 <ul>
 <li>Compare prompts side by side: use a different <code>cache_path</code> for each prompt version.</li>
 <li>Fixed a typo and want to keep the cached rows: pass <code>ignore_prompt_hash=True</code>.</li>
-<li>Wipe and redo: <code>fresh=True</code>, or delete the <code>.sqlite</code> file.</li>
+<li>Reprocess all inputs: <code>fresh=True</code>. This bypasses reads for this call and overwrites successful rows; it does not clear the database. If a refresh fails, earlier entries remain available to subsequent ordinary calls.</li>
+<li>To clear all prior results, explicitly delete the <code>.sqlite</code> file before starting a run.</li>
 </ul>
 <hr />
 <h2 id="batch-api-50-cheaper">Batch API: ~50% cheaper<a class="headerlink" href="#batch-api-50-cheaper" title="Permanent link">&para;</a></h2>
@@ -1721,16 +1775,22 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">lmsyz_genai_ie_rfs</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnthropicBatchExtractor</span>
 
 <span class="n">ext</span> <span class="o">=</span> <span class="n">AnthropicBatchExtractor</span><span class="p">(</span><span class="n">batch_root_dir</span><span class="o">=</span><span class="s2">&quot;my_job/&quot;</span><span class="p">)</span>
-<span class="n">ext</span><span class="o">.</span><span class="n">create_batch_requests</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">schema_dict</span><span class="o">=</span><span class="n">my_schema</span><span class="p">)</span>
+<span class="n">ext</span><span class="o">.</span><span class="n">create_batch_requests</span><span class="p">(</span>
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">text_col</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">job_id</span><span class="o">=</span><span class="s2">&quot;my_job&quot;</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;claude-haiku-4-5-20251001&quot;</span><span class="p">,</span>
+    <span class="n">schema_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># or an inner JSON schema dict, without the OpenAI wrapper</span>
+<span class="p">)</span>
 <span class="n">ext</span><span class="o">.</span><span class="n">submit_batch</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>
 <span class="n">ext</span><span class="o">.</span><span class="n">check_batch_status</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">,</span> <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">retrieve_results_as_dataframe</span><span class="p">(</span><span class="s2">&quot;my_job&quot;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Batch not finished yet; check status and retry.&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No parsed results returned; inspect batch status, logs, and raw output.&quot;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 </code></pre></div>
-<p>All intermediate files (JSONL input, submission manifest, raw results) are written under <code>batch_root_dir/&lt;job_id&gt;/</code> and can be inspected directly.</p>
+<p>All intermediate files (JSONL input, submission manifest, raw results) are written under <code>batch_root_dir/&lt;job_id&gt;/</code>. OpenAI output and error files are downloaded independently, including available partial output from unsuccessful terminal batches.</p>
+<p>Submitting the same files again creates new remote jobs. To resume OpenAI work after results have been downloaded, regenerate inputs with <code>create_batch_jsonl(..., exclude_processed=True)</code> before submitting the remainder. Use a new <code>job_id</code> for each Anthropic submission to preserve its manifest. Batch submission does not automatically deduplicate in-flight work.</p>
 <hr />
 <h2 id="model-providers">Model providers<a class="headerlink" href="#model-providers" title="Permanent link">&para;</a></h2>
 <p>Two native backends (OpenAI, Anthropic), plus any OpenAI-compatible endpoint reachable by setting <code>base_url=</code>. The same <code>extract_df</code> call shape works for all of them; only <code>model</code>, <code>base_url</code>, and <code>api_key</code> change.</p>
@@ -1833,7 +1893,7 @@ Return a JSON object with this EXACT structure:
 
 Do not include any fields besides input_id, sentiment, and confidence.
 </code></pre></div>
-<p>Read the result, tighten enums, add any domain-specific instructions, then pass it to <code>extract_df(prompt=prompt, ...)</code>. Defaults are <code>backend="openai"</code>, <code>model="gpt-4.1-mini"</code>; pass <code>backend="anthropic"</code> to use Claude instead. The temperature is fixed at 0, so the same <code>goal</code> reproduces the same starting prompt.</p>
+<p>Read the result, tighten enums, add any domain-specific instructions, then pass it to <code>extract_df(prompt=prompt, ...)</code>. Defaults are <code>backend="openai"</code>, <code>model="gpt-4.1-mini"</code>. To draft with Claude, pass both <code>backend="anthropic"</code> and an explicit Claude model, for example <code>model="claude-haiku-4-5-20251001"</code>. Drafting uses the provider's default sampling settings; repeated calls may produce different candidates. Empty or explicitly truncated drafts raise an error so you can retry or simplify the goal.</p>
 <hr />
 <h2 id="optional-a-json-schema-file">Optional: a JSON schema file<a class="headerlink" href="#optional-a-json-schema-file" title="Permanent link">&para;</a></h2>
 <p>By default, output structure is enforced only by the prompt; the model returns a JSON object whose shape it infers from the instructions.</p>
@@ -1914,12 +1974,12 @@ Do not include any fields besides input_id, sentiment, and confidence.
     <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                <span class="c1"># BYO preconfigured SDK client</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>Failed API calls are retried automatically (tenacity, exponential backoff, up to 5 attempts) on <code>RateLimitError</code> and <code>APIError</code>. If a chunk still fails after retries, the failure is logged and the chunk's rows are omitted from the returned DataFrame.</p>
+<p>Provider SDKs perform their own retries. The package adds up to five attempts with exponential backoff for transient OpenAI errors and Anthropic rate limits. Permanent OpenAI authentication, validation, and exhausted-quota errors are not retried by the package. A request that still fails is logged and omitted; valid results from other chunks remain available. Malformed or incomplete model output is reported without automatic extra paid requests.</p>
 <h3 id="draft_prompt-knobs">draft_prompt knobs<a class="headerlink" href="#draft_prompt-knobs" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">draft_prompt</span><span class="p">(</span>
     <span class="n">goal</span><span class="p">,</span>                       <span class="c1"># required: plain-English description of what to extract</span>
     <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span>           <span class="c1"># or &quot;anthropic&quot;</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>       <span class="c1"># model for the meta-call; any chat model works</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4.1-mini&quot;</span><span class="p">,</span>       <span class="c1"># choose a model supported by your provider</span>
     <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>               <span class="c1"># overrides .env / environment</span>
     <span class="n">base_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>              <span class="c1"># for OpenRouter / Gemini compat</span>
     <span class="n">print_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>          <span class="c1"># print result to stdout (useful in notebooks)</span>
@@ -1929,11 +1989,13 @@ Do not include any fields besides input_id, sentiment, and confidence.
 the automatic <code>print</code> and capture only the return value.</p>
 <hr />
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<p><strong>Why does my DataFrame have fewer rows than I expect?</strong> A chunk failed after retries. Check the log for the stack trace.</p>
+<p><strong>Why does my DataFrame have fewer rows than I expect?</strong> A request failed, the model omitted an ID, or response validation rejected rows. Check the log and compare returned <code>input_id</code> values with your source IDs.</p>
 <p><strong>How do I restart a batch job when I lost the <code>job_id</code>?</strong> Look under <code>batch_root_dir/</code>. The directories ARE the <code>job_id</code>s.</p>
-<p><strong>Is there retry logic?</strong> Yes: tenacity, 5 attempts with exponential backoff 2-30s for <code>RateLimitError</code> and <code>APIError</code>.</p>
+<p><strong>Is there retry logic?</strong> Yes. The package retries transient OpenAI failures and Anthropic rate limits, up to five attempts with 2-30 second backoff. Provider SDK retries may happen within each attempt. Anthropic server/connection retries are handled by its SDK.</p>
 <p><strong>What about nested lists and dicts in the output?</strong> Flatten with <code>df.explode("entities")</code> (each list item becomes its own row), followed by <code>pd.json_normalize(df["entities"])</code> (each dict's keys become columns). CSV stringifies nested fields; save as JSONL (<code>df.to_json(..., orient="records", lines=True)</code>) for clean round-tripping.</p>
 <hr />
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<p>Full docs (concepts, how-to guides, API reference): https://maifeng.github.io/lmsyz_genai_ie_rfs/</p>
 <h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
 <p>If you find this library useful in your research, please cite:</p>
 <p>Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang (2026). "Dissecting Corporate Culture Using Generative AI." <em>Review of Financial Studies</em> 39(1):253–296. <a href="https://doi.org/10.1093/rfs/hhaf081">doi.org/10.1093/rfs/hhaf081</a>.</p>
@@ -1950,6 +2012,14 @@ the automatic <code>print</code> and capture only the return value.</p>
 </code></pre></div>
 <h2 id="github">GitHub<a class="headerlink" href="#github" title="Permanent link">&para;</a></h2>
 <p>Source code: <a href="https://github.com/maifeng/lmsyz_genai_ie_rfs">https://github.com/maifeng/lmsyz_genai_ie_rfs</a></p>
+<h2 id="development-and-tests">Development and tests<a class="headerlink" href="#development-and-tests" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;.[dev,docs]&#39;</span>
+pytest<span class="w">                              </span><span class="c1"># offline tests; live tests are skipped</span>
+pytest<span class="w"> </span>--live<span class="w"> </span>-m<span class="w"> </span><span class="s1">&#39;live and not slow&#39;</span><span class="w"> </span><span class="c1"># real provider calls; requires keys and credits</span>
+pytest<span class="w"> </span>--live<span class="w"> </span>-m<span class="w"> </span><span class="s1">&#39;live and slow&#39;</span><span class="w">     </span><span class="c1"># also submits real batch jobs</span>
+mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+</code></pre></div>
+<p>The <code>--live</code> flag is required even when provider credentials are already configured.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>MIT.</p>
 <hr />
@@ -2012,7 +2082,7 @@ the automatic <code>print</code> and capture only the return value.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

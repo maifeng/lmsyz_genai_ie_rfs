@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -605,6 +605,17 @@
     <span class="md-ellipsis">
       
         Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resume-versus-resubmit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resume versus resubmit
       
     </span>
   </a>
@@ -1217,6 +1228,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#resume-versus-resubmit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resume versus resubmit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#max_requests_per_batch-and-large-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1428,10 +1450,11 @@ runs/anthropic_job/my_job/
         submission.json         # Anthropic batch manifest (id, status, ...)
     batch_output/
         results.jsonl           # raw streamed results from Anthropic
-        errors.txt              # per-request error payloads, if any
 </code></pre></div>
-<p>Every intermediate file is on disk so you can audit what was sent and what came back.
-Nothing is hidden in memory.</p>
+<p>Requests, submission manifests, and downloaded raw results are saved on disk. Anthropic per-request errors are recorded in <code>results.jsonl</code> and logged; there is no separate <code>errors.txt</code>. Downloads replace prior Anthropic results only after the new stream completes successfully.</p>
+<h3 id="resume-versus-resubmit">Resume versus resubmit<a class="headerlink" href="#resume-versus-resubmit" title="Permanent link">&para;</a></h3>
+<p>Every call to <code>submit_batches</code> or <code>submit_batch</code> creates new remote jobs. Calling it twice does not resume an earlier submission. For OpenAI, first download completed results, then regenerate with <code>create_batch_jsonl(..., exclude_processed=True)</code> and submit only the remaining input. This does not deduplicate in-flight requests. For Anthropic, choose a new <code>job_id</code> for each submission; reusing it replaces its submission manifest.</p>
+<p>OpenAI polling stops for <code>completed</code>, <code>failed</code>, <code>expired</code>, and <code>cancelled</code> batches, downloading any available output and error files independently. An unsuccessful terminal status does not imply every observation has a usable result. Anthropic continuous polling waits through <code>canceling</code> until <code>ended</code>.</p>
 <h3 id="max_requests_per_batch-and-large-inputs"><code>max_requests_per_batch</code> and large inputs<a class="headerlink" href="#max_requests_per_batch-and-large-inputs" title="Permanent link">&para;</a></h3>
 <p>OpenAI's batch API limits input files to 200 MB and 50,000 requests per file.
 <code>OpenAIBatchExtractor</code> defaults to <code>max_requests_per_batch=5000</code>. If your DataFrame has
@@ -1565,7 +1588,7 @@ for the full example.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

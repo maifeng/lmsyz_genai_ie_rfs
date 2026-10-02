@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1304,7 +1304,7 @@ Return a JSON object with key &quot;all_results&quot; whose value is a list of o
         <span class="n">input_schema</span> <span class="o">=</span> <span class="n">schema_dict</span>   <span class="c1"># already the inner schema</span>
     <span class="n">call_args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input_schema&quot;</span><span class="p">:</span> <span class="n">input_schema</span><span class="p">}</span>
 </code></pre></div>
-<p>For OpenAI, the full wrapper dict is passed directly as <code>response_format</code>. For Anthropic, the library unwraps the inner <code>schema</code> and passes it as the <code>input_schema</code> of a forced <code>tool_use</code> tool named <code>extract_results</code>. The model is required to call that tool (via <code>tool_choice={"type": "tool", "name": "extract_results"}</code>), so the response always contains a <code>tool_use</code> block.</p>
+<p>For OpenAI, the full wrapper dict is passed directly as <code>response_format</code>. For Anthropic, the library unwraps the inner <code>schema</code> and passes it as the <code>input_schema</code> of a forced <code>tool_use</code> tool named <code>extract_results</code>. The model is required to call that tool (via <code>tool_choice={"type": "tool", "name": "extract_results"}</code>), so the request asks for a <code>tool_use</code> block. Refusals or incomplete responses can still occur; the library reports a missing tool response.</p>
 <hr />
 <h2 id="provider-differences-in-prompt-caching">Provider differences in prompt caching<a class="headerlink" href="#provider-differences-in-prompt-caching" title="Permanent link">&para;</a></h2>
 <p>Repeated calls with the same long system prompt benefit from caching at the provider level. The mechanics differ:</p>
@@ -1315,7 +1315,7 @@ Return a JSON object with key &quot;all_results&quot; whose value is a list of o
 <span class="p">]</span>
 </code></pre></div>
 <p>This happens automatically. You do not need to configure anything. The same block is used in <code>AnthropicBatchExtractor.create_batch_requests</code> for batch jobs.</p>
-<p><strong>Practical consequence for chunk size:</strong> with Anthropic caching, the system prompt is billed at full price only on the first chunk that establishes the cache. Subsequent chunks pay the cached token rate. Larger <code>chunk_size</code> means fewer chunks, but the system prompt cost per call is the same (just the user message scales). The cache hit rate is high regardless of chunk size, as long as the prompt stays constant across the run.</p>
+<p><strong>Practical consequence for chunk size:</strong> repeated eligible prompts can benefit from provider caching. Hits depend on the provider's minimum prompt length, cache lifetime, and request timing; simultaneous first requests need not share an established cache. Larger chunks reduce request count. Inspect provider usage reports to measure actual cache savings.</p>
 <hr />
 <h2 id="tips-for-prompt-writing-in-this-framework">Tips for prompt writing in this framework<a class="headerlink" href="#tips-for-prompt-writing-in-this-framework" title="Permanent link">&para;</a></h2>
 <p><strong>Always ask for <code>all_results</code>.</strong> Every response parser in the library (<code>_call_openai</code>, <code>_call_anthropic</code>, <code>retrieve_results_as_dataframe</code>) looks for <code>all_results</code> first, then falls back to <code>results</code>. Use <code>all_results</code> in your prompt to stay on the happy path:</p>
@@ -1379,7 +1379,7 @@ Return a JSON object with key &quot;all_results&quot; whose value is a list of o
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
