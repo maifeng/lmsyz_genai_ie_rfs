@@ -157,7 +157,12 @@ class OpenAIBatchExtractor:
         if exclude_processed and any(output_dir.iterdir()):
             prior = self.retrieve_results_as_dataframe(job_id=job_id)
             if prior is not None:
-                done_ids = set(prior.iloc[:, 0].astype(str))
+                if "input_id" not in prior.columns:
+                    raise ValueError(
+                        "Prior batch results must contain 'input_id' to resume. "
+                        "Inspect the saved results or use exclude_processed=False."
+                    )
+                done_ids = set(prior["input_id"].dropna().astype(str))
                 before = len(dataframe)
                 dataframe = dataframe[~dataframe[id_col].astype(str).isin(done_ids)]
                 print(
@@ -262,7 +267,10 @@ class OpenAIBatchExtractor:
         continuous: bool = False,
         interval: int = 300,
     ) -> None:
-        """Poll batch status and download results when complete.
+        """Poll batch status and download available output and error files.
+
+        Continuous polling stops when every batch is completed, failed, expired,
+        or cancelled. Successful partial output remains available for parsing.
 
         Args:
             job_id: The job identifier to check.
@@ -282,10 +290,6 @@ class OpenAIBatchExtractor:
                 result_path = output_dir / f"batch_result_{batch_id}.jsonl"
                 error_path = output_dir / f"batch_error_{batch_id}.txt"
 
-                if result_path.exists() or error_path.exists():
-                    done += 1
-                    continue
-
                 status = self.client.batches.retrieve(batch_id)
                 counts = (status.model_dump().get("request_counts") or {})
                 print(
@@ -293,16 +297,18 @@ class OpenAIBatchExtractor:
                     f"{counts.get('completed', '?')}/{counts.get('total', '?')} completed."
                 )
 
-                if status.error_file_id:
+                if status.error_file_id and not error_path.exists():
                     raw = self.client.files.content(status.error_file_id).content
                     error_path.write_bytes(raw)
                     log.warning("Errors for batch %s written to %s.", batch_id, error_path)
-                    done += 1
-                elif status.completed_at is not None:
-                    raw = self.client.files.content(status.model_dump()["output_file_id"]).content
+                if status.output_file_id and not result_path.exists():
+                    raw = self.client.files.content(status.output_file_id).content
                     result_path.write_bytes(raw)
                     print(f"Results for batch {batch_id} written to {result_path}.")
+                if status.status in {"completed", "failed", "expired", "cancelled"}:
                     done += 1
+                    if status.status != "completed":
+                        log.warning("Batch %s ended with status %s.", batch_id, status.status)
                 elif status.status == "finalizing":
                     print(f"Batch {batch_id} is finalizing.")
                 else:
@@ -310,7 +316,7 @@ class OpenAIBatchExtractor:
 
             if not continuous or done == len(manifests):
                 if done == len(manifests):
-                    print(f"All {done} batches complete.")
+                    print(f"All {done} batches reached a terminal status.")
                 break
 
             print(f"Waiting {interval}s before next poll.")
