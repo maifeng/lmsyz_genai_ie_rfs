@@ -53,9 +53,6 @@ batch_jobs/
 *.db
 *.sqlite
 
-# VCR cassettes (keep tracked)
-# tests/cassettes/
-
 # macOS
 .DS_Store
 .AppleDouble

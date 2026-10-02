@@ -1,25 +1,36 @@
-"""Shared pytest fixtures and vcrpy configuration.
+"""Configure pytest so live API tests run only with explicit --live opt-in.
 
-VCR cassettes are stored in tests/cassettes/. Record a cassette by running
-pytest with a live API key once; subsequent runs play back the recording.
+Input: pytest command-line options and collected tests.
+Output: live tests are skipped by default, regardless of available credentials.
 """
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 
-CASSETTE_DIR = Path(__file__).parent / "cassettes"
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the flag for requests to real provider APIs.
 
-
-@pytest.fixture(scope="session", autouse=True)
-def cassette_dir() -> Path:
-    """Ensure the cassettes directory exists and return its path.
-
-    Returns:
-        Path to the cassettes directory.
+    Args:
+        parser: Pytest command-line parser.
     """
-    CASSETTE_DIR.mkdir(exist_ok=True)
-    return CASSETTE_DIR
+    parser.addoption(
+        "--live", action="store_true", default=False,
+        help="Run tests that call real provider APIs and may incur charges.",
+    )
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Skip live tests unless the caller opted in.
+
+    Args:
+        config: Parsed pytest configuration.
+        items: Collected tests to mark.
+    """
+    if config.getoption("--live"):
+        return
+    skip_live = pytest.mark.skip(reason="Live API tests require --live.")
+    for item in items:
+        if item.get_closest_marker("live") is not None:
+            item.add_marker(skip_live)

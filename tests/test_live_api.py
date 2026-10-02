@@ -5,9 +5,9 @@ SQLite caches) persist to ``test_artifacts/<test_name>/`` under the repo
 root so you can inspect them after a run.
 
 Run:
-    pytest tests/test_live_api.py -m live -v                    # all live
-    pytest tests/test_live_api.py -m "live and not slow" -v     # concurrent only
-    pytest tests/test_live_api.py -m "live and slow" -v         # batch only
+    pytest tests/test_live_api.py --live -m live -v                    # all live
+    pytest tests/test_live_api.py --live -m "live and not slow" -v     # concurrent only
+    pytest tests/test_live_api.py --live -m "live and slow" -v         # batch only
 
 Fixtures in ``tests/data/``:
     culture_segments_20.csv       - 20 analyst-report-style rows
