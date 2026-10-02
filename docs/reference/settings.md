@@ -18,11 +18,31 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 DEFAULT_MODEL=gpt-4.1-mini
 DEFAULT_BACKEND=openai
-OPENAI_BASE_URL=                  # optional: OpenRouter or Gemini compat URL
+# OPENAI_BASE_URL=https://openrouter.ai/api/v1  # optional custom endpoint
 MAX_WORKERS=20
 CHUNK_SIZE=5
 ```
 
-The `.env` file is loaded automatically by `pydantic-settings` when the `Settings` object
-is instantiated. Values passed explicitly to `extract_df` (e.g., `api_key=`, `base_url=`)
-always take precedence over settings.
+The `.env` file is loaded when the package settings singleton is instantiated at import.
+`extract_df` and `draft_prompt` use its provider credentials and OpenAI base URL when
+explicit arguments are omitted. Explicit `api_key=` and `base_url=` take precedence.
+Batch constructors use explicit credentials or the SDK's process environment lookup.
+
+The `default_model`, `default_backend`, `max_workers`, and `chunk_size` fields are
+available to callers but do not override function signatures automatically. `extract_df`
+requires `model=` and otherwise uses `backend="openai"`, `max_workers=20`, and
+`chunk_size=5`. To use stored values, pass them explicitly:
+
+```python
+from lmsyz_genai_ie_rfs import extract_df
+from lmsyz_genai_ie_rfs.settings import settings
+
+out = extract_df(
+    df, prompt=prompt, cache_path="run.sqlite",
+    model=settings.default_model, backend=settings.default_backend,
+    max_workers=settings.max_workers, chunk_size=settings.chunk_size,
+)
+```
+
+After changing a `.env` file in a running notebook, restart the kernel or pass the new
+values explicitly.

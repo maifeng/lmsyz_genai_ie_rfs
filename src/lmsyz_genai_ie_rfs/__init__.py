@@ -8,7 +8,7 @@ Public API:
     AnthropicBatchExtractor       - Anthropic Message Batches lifecycle helper
     SqliteCache                   - small get/put/all_ids resume cache
 
-The framework is domain-agnostic. Provide your own Pydantic schema (or
+The framework is domain-agnostic. Provide your own JSON response schema (or
 ``schema=None`` for free-form JSON) and any prompt that describes the
 output shape. Originally developed for Li, Mai, Shen, Yang & Zhang (2026),
 "Dissecting Corporate Culture Using Generative AI," RFS 39(1):253-296.
@@ -23,7 +23,7 @@ from lmsyz_genai_ie_rfs.client import extract_df
 from lmsyz_genai_ie_rfs.dataframe import SqliteCache
 from lmsyz_genai_ie_rfs.draft_prompt import draft_prompt
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __paper__ = (
     "Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang. 2026. "

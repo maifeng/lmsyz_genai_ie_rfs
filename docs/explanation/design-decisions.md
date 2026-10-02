@@ -97,7 +97,7 @@ Duck typing at the function level. Fewer layers, easier to read, easier to test 
 
 A transient `RateLimitError` on one chunk should not fail the other 99 chunks.
 
-`@retry_api_call` wraps `_call_openai` and `_call_anthropic` individually. Each chunk gets 5 attempts with exponential backoff. If a chunk exhausts all 5 attempts, `extract_df` catches the exception in the `as_completed` loop, logs it via `log.exception`, and continues. The other chunks' results are still written to cache and returned.
+`@retry_api_call` wraps `_call_openai` and `_call_anthropic` individually. Eligible transient failures receive up to five outer attempts with exponential backoff, in addition to SDK retries. Permanent OpenAI errors and malformed responses do not receive these retries. If a request still fails, `extract_df` catches the exception in the `as_completed` loop, logs it via `log.exception`, and continues. The other chunks' results are still written to cache and returned.
 
 The alternative (retry the entire job) would mean one bad row's transient error re-processes everything. That is the wrong trade-off for a library where a "job" can be thousands of rows.
 

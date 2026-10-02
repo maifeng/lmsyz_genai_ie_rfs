@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.1.4] - 2026-10-02
+
+### Fixed
+
+- Retrieve successful OpenAI batch output even when the batch also has errors, and resume by the named `input_id` field rather than output-column order.
+- Stop polling failed, expired, and cancelled OpenAI batches while retaining available partial output. Continue Anthropic cancellation polling until `ended`.
+- Preserve existing Anthropic result files when a replacement download fails; isolate unusable batch result records so other observations remain accessible.
+- Validate source IDs and positive chunk/worker counts before requests. Exclude malformed, foreign, and duplicate concurrent output IDs, report missing observations, and retain valid rows.
+- Preserve integer input IDs when other DataFrame columns contain numeric values, and normalize datetime IDs consistently for requests and cache reuse.
+- Allow cached-only extraction without constructing an API client. Keep cache identity and failed-refresh retention semantics unchanged.
+- Avoid package-level retries for permanent OpenAI errors, including exhausted credits.
+- Apply configured `.env` credentials/base URL to prompt drafting, use provider-default sampling, and reject empty or explicitly truncated drafts.
+
+### Changed
+
+- Live tests require explicit `--live` opt-in, even with provider credentials configured.
+- Correct cache-versioning, refresh, crash recovery, retry, provider setup, batch lifecycle, and schema documentation. Paired notebooks use consistent example labels and guard unavailable batch results.
+- Clarify caller-readable settings versus function defaults. Remove obsolete VCR and output-artifact claims.
+- Synchronize software citation/version metadata and modernize package license metadata. Include test configuration and fixtures in the source distribution.
+
+---
+
 ## [0.1.3] - 2026-04-28
 
 ### Added

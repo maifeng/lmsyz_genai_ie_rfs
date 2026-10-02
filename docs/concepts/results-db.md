@@ -1,6 +1,6 @@
 # Results database
 
-Every completed row is written to a SQLite file as it finishes. This page explains how that works, why `cache_path` is required, and how prompt-hash gating ensures you never silently reuse stale results.
+Valid returned rows are committed to SQLite as chunks finish. Prompt-hash gating prevents automatic reuse after a prompt change. Changes to input text, model, provider, or schema require a separate cache or an explicit refresh.
 
 ---
 
@@ -67,6 +67,8 @@ Column descriptions:
 - **`json_result`**: The full result dict for this row, serialized as JSON. This is whatever the model returned for this input row (e.g., `{"input_id": "42", "culture_type": "innovation_adaptability", "tone": "positive", "confidence": 0.92}`).
 - **`prompt_hash`**: The first 16 hex characters of the SHA-256 hash of the prompt that produced this result. Used to detect when the prompt has changed since this row was cached. Can be NULL for rows written by older versions of the library (see migration below).
 
+Use one cache per corpus/model/schema/provider experiment. Text and configuration changes do not invalidate entries automatically; use a new path or `fresh=True`.
+
 Writes use `INSERT OR REPLACE`, which is SQLite's upsert: if a row with the same `row_id` already exists, it is overwritten. This means re-running with `fresh=True` or with a changed prompt writes new results over old ones in place.
 
 ---
@@ -104,11 +106,11 @@ flowchart LR
     end
 ```
 
-Changing the prompt means new results are expected. The old rows (written under `abcd1234`) are not returned; they are simply ignored because their hash does not match. The new results are written under `ef567890`. Both sets of rows coexist in the database (since `row_id` is the primary key, and the old rows are not deleted unless you overwrite them).
+Changing the prompt means new results are expected. The old rows (written under `abcd1234`) are not returned; they are simply ignored because their hash does not match. The new results are written under `ef567890`. Each successful new result replaces the old result for that `row_id`. The two versions do not coexist for the same ID. Older hashes can remain only on rows that have not been overwritten.
 
 ### The escape hatch: `ignore_prompt_hash=True`
 
-For non-semantic edits (typo fixes, whitespace changes) where you want to reuse cached rows without re-spending tokens, see [Change the prompt safely](../how-to/change-prompt-safely.md#the-escape-hatch-ignore_prompt_hashtrue).
+For non-semantic edits (typo fixes, whitespace changes) where you want to reuse cached rows without re-spending tokens, see [Change the prompt safely](../how-to/change-prompt-safely.md#reuse-after-a-non-semantic-edit).
 
 ---
 

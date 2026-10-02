@@ -6,7 +6,7 @@
 
 **Symptoms:** `extract_df` returns a DataFrame with fewer rows than the input. No error was raised.
 
-**Cause:** One or more chunks failed. When a chunk exhausts all retries, `extract_df` logs the exception via `log.exception` and skips that chunk. The remaining chunks' results are still returned.
+**Cause:** A request failed, the model omitted observations, or response validation rejected malformed, foreign, or duplicate IDs. Failed requests are logged, and valid rows from other responses are still returned. Compare input and returned IDs to locate omissions.
 
 **Fix:**
 
@@ -15,10 +15,10 @@
    import logging
    logging.basicConfig(level=logging.WARNING)
    ```
-2. Look for lines starting with `extract_df: chunk failed; results for this chunk skipped.`
+2. Look for lines starting with `extract_df: chunk failed; missing results for input_ids: [...]`
 3. Common causes:
-   - **Malformed prompt:** the model returned text that is not valid JSON, or returned JSON without the expected `all_results` key. Inspect the error message for a JSON parse error.
-   - **Rate limits exhausted:** all 5 retry attempts hit `RateLimitError`. Reduce `max_workers` or add a delay by using a smaller `chunk_size`.
+   - **Malformed prompt:** the model returned text that is not valid JSON, or returned rows without valid input IDs. Inspect validation warnings as well as JSON parse errors.
+   - **Rate limits exhausted:** all 5 retry attempts hit `RateLimitError`. Reduce `max_workers` and inspect the provider's request/token limits. Smaller chunks do not add a delay and may increase the number of requests.
    - **Context overflow:** one or more rows in the chunk are too long for the model's context window. Use a smaller `chunk_size` (so fewer rows per call) or truncate the input text.
 4. After fixing the cause, rerun the same call with the same `cache_path`. The rows that already succeeded will be skipped; only the failed rows will be retried.
 
@@ -37,12 +37,12 @@
    print(compute_prompt_hash(old_prompt))
    print(compute_prompt_hash(new_prompt))
    ```
-   If the two hashes are the same, the prompts are identical (perhaps a whitespace difference you cannot see).
+   Whitespace changes normally change the hash. If the hashes match, first check whether your code actually passed the edited string.
 3. Inspect the `prompt_hash` column in the SQLite file:
    ```bash
    sqlite3 runs/cache.sqlite "SELECT DISTINCT prompt_hash FROM results;"
    ```
-   If you see the new prompt's hash appearing, the gating is working. If only the old hash appears, the new prompt is not producing cache misses (the prompts may be the same).
+   A new prompt hash shows that refreshed rows were saved. If only the old hash remains, check the extraction logs and returned IDs: failed refreshes preserve prior cache rows. Also verify that you passed the edited prompt.
 
 **Fix:** If the prompts are genuinely different and you still see stale results, pass `fresh=True` to force a full re-run ignoring all cached rows.
 
@@ -87,8 +87,8 @@ See [Results database](../concepts/results-db.md) for the rationale.
 
 - Every object must have `"additionalProperties": false`.
 - Every property must appear in the `"required"` array.
-- No `$ref` references are allowed (the schema must be fully inlined).
-- Limited type set: `string`, `number`, `integer`, `boolean`, `array`, `object`, `null`. No `anyOf` on primitives.
+- The root must be an object, not a root-level `anyOf`.
+- Nested `anyOf`, `$defs`, `$ref`, and recursive schemas are supported subject to the provider's schema subset. See the [OpenAI Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs) for current model-specific restrictions.
 
 **Fix:** Use the pattern from `tests/data/culture_batch_schema.json`, which is a known-good example:
 
@@ -147,7 +147,7 @@ If you are still seeing fenced output in the final DataFrame, it likely means th
 Respond with ONLY a JSON object, no preamble, no markdown fences.
 ```
 
-Alternatively, pass a `schema=` argument. With a schema, Anthropic uses forced `tool_use` and the response is always structured.
+Alternatively, pass a `schema=` argument. With a schema, Anthropic is asked to use a forced tool response. Missing tool responses are reported as errors.
 
 ---
 

@@ -191,7 +191,7 @@ else:
     call_args = {"input_schema": input_schema}
 ```
 
-For OpenAI, the full wrapper dict is passed directly as `response_format`. For Anthropic, the library unwraps the inner `schema` and passes it as the `input_schema` of a forced `tool_use` tool named `extract_results`. The model is required to call that tool (via `tool_choice={"type": "tool", "name": "extract_results"}`), so the response always contains a `tool_use` block.
+For OpenAI, the full wrapper dict is passed directly as `response_format`. For Anthropic, the library unwraps the inner `schema` and passes it as the `input_schema` of a forced `tool_use` tool named `extract_results`. The model is required to call that tool (via `tool_choice={"type": "tool", "name": "extract_results"}`), so the request asks for a `tool_use` block. Refusals or incomplete responses can still occur; the library reports a missing tool response.
 
 ---
 
@@ -211,7 +211,7 @@ system_block = [
 
 This happens automatically. You do not need to configure anything. The same block is used in `AnthropicBatchExtractor.create_batch_requests` for batch jobs.
 
-**Practical consequence for chunk size:** with Anthropic caching, the system prompt is billed at full price only on the first chunk that establishes the cache. Subsequent chunks pay the cached token rate. Larger `chunk_size` means fewer chunks, but the system prompt cost per call is the same (just the user message scales). The cache hit rate is high regardless of chunk size, as long as the prompt stays constant across the run.
+**Practical consequence for chunk size:** repeated eligible prompts can benefit from provider caching. Hits depend on the provider's minimum prompt length, cache lifetime, and request timing; simultaneous first requests need not share an established cache. Larger chunks reduce request count. Inspect provider usage reports to measure actual cache savings.
 
 ---
 

@@ -20,7 +20,7 @@ The `_requires_temp_one` function returns `True` for model families that only ac
 | `o1`, `o1-mini`, `o1-preview`, ... | 1.0 |
 | `o3`, `o3-mini`, ... | 1.0 |
 | `gpt-5`, `gpt-5-mini`, ... | 1.0 |
-| Everything else | 0.0 (deterministic) |
+| Everything else | 0.0 (does not guarantee identical output) |
 
 The check uses the model name string: `lower.startswith(("o1", "o3"))` or `"gpt-5" in lower`.
 You cannot override this in the concurrent path; it is automatic. In the batch path,
@@ -32,7 +32,7 @@ affected families.
 ## See also
 
 - [Resume after a crash](../how-to/resume-after-crash.md): how `cache_path` enables
-  zero-loss restarts.
+  reuse of committed results after a restart.
 - [Change the prompt safely](../how-to/change-prompt-safely.md): how prompt-hash
   invalidation works and when to use `ignore_prompt_hash=True`.
 - [Switch providers](../how-to/switch-providers.md): switching between OpenAI, Anthropic,
