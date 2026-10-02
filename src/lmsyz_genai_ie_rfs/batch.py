@@ -22,19 +22,10 @@ Output: batch JSONL files on disk, then a pandas DataFrame of parsed results.
 # Temperature is forced to 1.0 automatically for o1, o3, and gpt-5 model
 # families. All other models use the temperature= argument (default 0.0).
 #
-# To use the Anthropic batch API (which uses a JSON body, not JSONL file
-# upload), see AnthropicBatchJobClassifier in a future batch_anthropic.py
-# module. Anthropic batch format is entirely different: requests are sent
-# as a list in a single POST body to /v1/messages/batches; there is no
-# file upload step and no JSONL written to disk.
-#
-# To use Gemini via the OpenAI-compatible endpoint for batch jobs, note that
-# as of 2026-04 the Gemini OpenAI-compat layer does NOT support
-# client.files.create for file upload. You must use the google-generativeai
-# (genai) SDK for the upload step, then pass the resulting file ID to
-# openai_client.batches.create(input_file_id=...). Because of this hybrid
-# requirement, the recommended approach for Gemini users is the concurrent
-# path: extract_df(..., provider='openai', base_url=gemini_compat_url, ...).
+# For Anthropic Message Batches, use AnthropicBatchExtractor from
+# anthropic_batch.py. For OpenAI-compatible providers, use concurrent
+# extract_df with backend="openai" and the provider's base_url; this class
+# targets the native OpenAI Batch API.
 """
 
 from __future__ import annotations
@@ -43,13 +34,17 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import openai
 import pandas as pd
 from tqdm import tqdm
 
-from lmsyz_genai_ie_rfs.dataframe import DataFrameIterator
+from lmsyz_genai_ie_rfs.dataframe import (
+    DataFrameIterator,
+    validate_input_dataframe,
+    validate_positive_integer,
+)
 
 log = logging.getLogger(__name__)
 
@@ -105,6 +100,7 @@ class OpenAIBatchExtractor:
                 reduce this value if you hit those limits.
             api_key: Optional OpenAI API key override.
         """
+        validate_positive_integer(max_requests_per_batch, "max_requests_per_batch")
         self.batch_root_dir = Path(batch_root_dir)
         self.batch_root_dir.mkdir(parents=True, exist_ok=True)
         self.max_requests_per_batch = max_requests_per_batch
@@ -121,7 +117,7 @@ class OpenAIBatchExtractor:
         temperature: float = 0.0,
         chunk_size: int = 5,
         exclude_processed: bool = True,
-        schema_dict: dict | None = None,
+        schema_dict: dict[str, Any] | None = None,
     ) -> None:
         """Build JSONL batch input files from a DataFrame.
 
@@ -133,7 +129,7 @@ class OpenAIBatchExtractor:
 
         Args:
             dataframe: Input DataFrame. Must contain id_col and text_col.
-            id_col: Column name for row identifiers.
+            id_col: Column name for non-null row IDs, unique after string conversion.
             text_col: Column name for text content.
             prompt: System prompt text. Passed as role="system" (P0 fix).
             job_id: Unique job identifier. Used as the subdirectory name.
@@ -144,15 +140,13 @@ class OpenAIBatchExtractor:
             schema_dict: Optional JSON schema dict for response_format. If None,
                 uses {"type": "json_object"}.
         """
+        validate_positive_integer(chunk_size, "chunk_size")
+        validate_input_dataframe(dataframe, id_col, text_col)
         job_dir = self.batch_root_dir / job_id
         input_dir = job_dir / "batch_input"
         output_dir = job_dir / "batch_output"
         input_dir.mkdir(parents=True, exist_ok=True)
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Clear stale input files before regenerating.
-        for stale in input_dir.glob("*"):
-            stale.unlink()
 
         if exclude_processed and any(output_dir.iterdir()):
             prior = self.retrieve_results_as_dataframe(job_id=job_id)
@@ -172,6 +166,10 @@ class OpenAIBatchExtractor:
             else:
                 print(f"No prior results found in {output_dir}.")
 
+        # Clear stale input files before regenerating.
+        for stale in input_dir.glob("*"):
+            stale.unlink()
+
         # Shuffle for better load distribution across workers.
         dataframe = dataframe.sample(frac=1, random_state=1).reset_index(drop=True)
 
@@ -182,11 +180,11 @@ class OpenAIBatchExtractor:
             chunk_size=chunk_size,
         )
 
-        response_format: dict = schema_dict or {"type": "json_object"}
+        response_format: dict[str, Any] = schema_dict or {"type": "json_object"}
 
         batch_counter = 0
         request_counter = 0
-        batch_data: list[dict] = []
+        batch_data: list[dict[str, Any]] = []
 
         for chunk in tqdm(df_iter, desc="Building batch JSONL", total=len(df_iter)):
             effective_temp = 1.0 if _requires_temp_one(model_name) else temperature
@@ -221,7 +219,7 @@ class OpenAIBatchExtractor:
             self._write_batch_file(input_dir, batch_counter, batch_data)
 
     def _write_batch_file(
-        self, input_dir: Path, counter: int, data: list[dict]
+        self, input_dir: Path, counter: int, data: list[dict[str, Any]]
     ) -> None:
         """Write a list of batch request dicts to a JSONL file.
 
@@ -322,8 +320,11 @@ class OpenAIBatchExtractor:
             print(f"Waiting {interval}s before next poll.")
             time.sleep(interval)
 
-    def retrieve_results_as_dataframe(self, job_id: str) -> Optional[pd.DataFrame]:
+    def retrieve_results_as_dataframe(self, job_id: str) -> pd.DataFrame | None:
         """Parse completed batch result JSONL files into a DataFrame.
+
+        Unusable records and non-object rows are logged and skipped. Valid rows
+        from the same file remain available; raw records are preserved on disk.
 
         Args:
             job_id: The job identifier whose results to retrieve.
@@ -336,10 +337,10 @@ class OpenAIBatchExtractor:
         if not output_dir.exists() or not any(output_dir.iterdir()):
             return None
 
-        rows: list[dict] = []
+        rows: list[dict[str, Any]] = []
         for path in tqdm(list(output_dir.glob("*.jsonl")), desc="Parsing results"):
             with open(path) as fh:
-                for line in fh:
+                for line_number, line in enumerate(fh, start=1):
                     line = line.strip()
                     if not line:
                         continue
@@ -348,18 +349,32 @@ class OpenAIBatchExtractor:
                         content = (
                             record["response"]["body"]["choices"][0]["message"]["content"]
                         )
+                        if not isinstance(content, str):
+                            raise ValueError("response has no text content (possibly a refusal)")
                         parsed = json.loads(content)
-                        # Support multiple result-key conventions.
-                        batch_rows = (
-                            parsed.get("all_results")
-                            or parsed.get("all results")
-                            or parsed.get("results")
-                            or []
+                        if not isinstance(parsed, dict):
+                            raise ValueError("response JSON must be an object")
+                        # Preserve the supported legacy result-key conventions.
+                        batch_rows: Any = next(
+                            (parsed[key] for key in ("all_results", "all results", "results")
+                             if key in parsed),
+                            None,
                         )
                         if isinstance(batch_rows, dict):
                             batch_rows = [batch_rows]
-                        rows.extend(batch_rows)
-                    except (json.JSONDecodeError, KeyError) as exc:
-                        log.warning("Could not parse line in %s: %s", path.name, exc)
+                        if not isinstance(batch_rows, list):
+                            raise ValueError("result rows must be an array or object")
+                        for row_number, row in enumerate(batch_rows, start=1):
+                            if isinstance(row, dict):
+                                rows.append(row)
+                            else:
+                                log.warning(
+                                    "Ignoring non-object row %s in %s line %s (request %s).",
+                                    row_number, path.name, line_number, record.get("custom_id", "?"),
+                                )
+                    except (ValueError, KeyError, IndexError, TypeError) as exc:
+                        log.warning(
+                            "Could not parse %s line %s: %s", path.name, line_number, exc,
+                        )
 
         return pd.DataFrame(rows) if rows else None
