@@ -140,7 +140,9 @@ class DataFrameIterator:
                 self.formatted_id_col: str(row_id),
                 self.formatted_text_col: str(text),
             }
-            for row_id, text in zip(chunk[self.id_col], chunk[self.text_col], strict=True)
+            for row_id, text in zip(
+                chunk[self.id_col].astype(str), chunk[self.text_col], strict=True
+            )
         ]
 
     def __len__(self) -> int:

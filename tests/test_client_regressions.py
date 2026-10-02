@@ -283,3 +283,27 @@ def test_schema_file_preserves_response_object(tmp_path: Path) -> None:
     schema_path = tmp_path / "schema.json"
     schema_path.write_text(json.dumps(schema))
     assert _load_schema(schema_path) == schema
+
+
+
+def test_datetime_ids_match_submissions_and_cache_resume(tmp_path: Path) -> None:
+    """Use one string representation for date IDs in submissions and cache reads.
+
+    Args:
+        tmp_path: Temporary directory.
+    """
+    df = pd.DataFrame({
+        "id": pd.to_datetime(["2026-01-01", "2026-01-02"]),
+        "text": ["first", "second"],
+    })
+    expected = {"2026-01-01", "2026-01-02"}
+    chunks = list(DataFrameIterator(df, "id", "text", chunk_size=1))
+    assert {row["input_id"] for chunk in chunks for row in chunk} == expected
+    sdk = _sdk()
+    first = _run(tmp_path, sdk, df, chunk_size=1)
+    assert set(first["input_id"]) == expected
+    assert SqliteCache(tmp_path / "cache.db").all_ids() == expected
+    assert sdk.chat.completions.create.call_count == 2
+    resumed = _run(tmp_path, sdk, df, chunk_size=1)
+    assert set(resumed["input_id"]) == expected
+    assert sdk.chat.completions.create.call_count == 2
