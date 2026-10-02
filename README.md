@@ -4,7 +4,7 @@ A general-purpose library for **prompt-based information extraction over DataFra
 
 [![Open in Colab](https://img.shields.io/badge/Colab-60--second%20quickstart-orange?logo=googlecolab&logoColor=white)](https://colab.research.google.com/github/maifeng/lmsyz_genai_ie_rfs/blob/main/notebooks/00_colab_quickstart.ipynb)
 [![PyPI version](https://img.shields.io/pypi/v/lmsyz_genai_ie_rfs.svg)](https://pypi.org/project/lmsyz_genai_ie_rfs/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/maifeng/lmsyz_genai_ie_rfs/blob/main/LICENSE)
 
 Cite as: Li, Mai, Shen, Yang, Zhang (2026), RFS. Full citation and BibTeX at the [bottom of this page](#citation).
 
@@ -69,10 +69,10 @@ Step-by-step instructions:
 1. input_id: Copy the input_id from the row verbatim.
 2. entities: List every named entity mentioned in the text. For each entity give:
    - name: the surface form as it appears in the text.
-   - type: one of "PERSON", "ORG", "PRODUCT", "DATE", "MONEY".
+   - type: one of "PERSON", "ORG", "PRODUCT", "DATE", "MONEY", "EVENT".
 3. causal_triples: If the text explicitly states a cause and effect, list each as a
    three-element array ["cause", "relation", "effect"]. If there is no explicit
-   causation, return an empty list []. All elements should be concisely summarized, in three words or less. 
+   causation, return an empty list []. All elements should be concisely summarized, in three words or less.
 4. sentiment: One of "positive", "neutral", or "negative".
 
 Return a JSON object with this EXACT structure:
@@ -85,7 +85,7 @@ Return a JSON object with this EXACT structure:
         {"name": "Apple",    "type": "ORG"},
         {"name": "Tim Cook", "type": "PERSON"}
       ],
-      "causal_triples": [[cause_1, relation_1, effect_1], [cause_2, relation_2, effect_2], ...],
+      "causal_triples": [["acquisition", "enabled", "market entry"]],
       "sentiment": "positive/neutral/negative"
     }
   ]
@@ -96,9 +96,9 @@ Do not include any fields besides input_id, entities, causal_triples, and sentim
 
 out = extract_df(
     df, prompt=prompt,
-    chunk_size=5, 
+    chunk_size=5,
     max_workers=20,
-    backend="openai", 
+    backend="openai",
     model="gpt-4.1-mini",
     cache_path="demo.sqlite",
     id_col="id", text_col="text",
@@ -113,7 +113,7 @@ print(entities)
 Save:
 
 ```python
-out.to_csv("extraction.csv", index=False)                          
+out.to_csv("extraction.csv", index=False)
 ```
 
 **Tip:** No prompt yet? `draft_prompt(goal="...")` returns a starter you can edit. See [draft_prompt](#drafting-a-prompt-with-draft_prompt) below.
@@ -122,7 +122,7 @@ out.to_csv("extraction.csv", index=False)
 
 ## Speed up: `chunk_size` and `max_workers`
 
-`max_workers` sets the size of the threadpool that issues API calls in parallel. `chunk_size` sets how many DataFrame rows are packed into each call (one shared system prompt, `chunk_size` user inputs). Combining them can speed up execution by 100× compared to a naive `for` loop with one row per call. 
+`max_workers` sets the size of the threadpool that issues API calls in parallel. `chunk_size` sets how many DataFrame rows are packed into each call (one shared system prompt, `chunk_size` user inputs). Combining them can speed up execution by 100× compared to a naive `for` loop with one row per call.
 
 ```python
 out = extract_df(
@@ -142,7 +142,7 @@ At ~1 second per call, 100,000 rows:
 | One row per call, `max_workers=20` | 100,000 | ~83 minutes |
 | `chunk_size=5`, `max_workers=20` | 20,000 | **~17 minutes** |
 
-**Tuning:** start `chunk_size=5`, `max_workers=20`. Raise `max_workers` until the log shows rate-limit retries (OpenAI tier-3 handles 60–100; Anthropic tier-2 handles 20–50). 
+**Tuning:** start `chunk_size=5`, `max_workers=20`. Adjust `max_workers` for the request and token limits on your specific account and model; reduce it if rate-limit retries accumulate.
 
 For ~50% lower per-token cost in exchange for asynchronous execution, see [the batch API](#batch-api-50-cheaper) below.
 
@@ -154,7 +154,17 @@ API calls cost money and time. The cache exists so that an interrupted, edited, 
 
 `cache_path` is **required**. It is the path to a SQLite file. Each completed row is written to it as soon as it returns from the model. The file is not auto-deleted.
 
-On rerun with the same `cache_path`, rows already in the cache are skipped; only missing rows go to the model.
+On rerun with the same `cache_path` and prompt, matching cached rows are skipped.
+Use a separate cache file for each corpus/model/schema/provider experiment: these settings
+and the input text are not part of the cache key. After editing text under existing IDs,
+use a new cache file or `fresh=True`.
+
+Input IDs must be non-null, nonempty, and unique after conversion to strings. Both
+`chunk_size` and `max_workers` must be positive integers. Returned rows with malformed,
+foreign, or duplicate IDs are excluded and logged; missing IDs are reported. Valid rows
+are still returned and cached. Check completeness before joining results to research data.
+Create the parent directory before using a nested cache path, for example
+`Path("runs").mkdir(parents=True, exist_ok=True)` after `from pathlib import Path`.
 
 The schema is three columns:
 
@@ -172,7 +182,8 @@ Three escape hatches:
 
 - Compare prompts side by side: use a different `cache_path` for each prompt version.
 - Fixed a typo and want to keep the cached rows: pass `ignore_prompt_hash=True`.
-- Wipe and redo: `fresh=True`, or delete the `.sqlite` file.
+- Reprocess all inputs: `fresh=True`. This bypasses reads for this call and overwrites successful rows; it does not clear the database. If a refresh fails, earlier entries remain available to subsequent ordinary calls.
+- To clear all prior results, explicitly delete the `.sqlite` file before starting a run.
 
 ---
 
@@ -207,17 +218,24 @@ Same lifecycle, different wire format (a JSON request body, not a JSONL file upl
 from lmsyz_genai_ie_rfs import AnthropicBatchExtractor
 
 ext = AnthropicBatchExtractor(batch_root_dir="my_job/")
-ext.create_batch_requests(..., schema_dict=my_schema)
+ext.create_batch_requests(
+    dataframe=df, id_col="id", text_col="text",
+    prompt=prompt, job_id="my_job",
+    model_name="claude-haiku-4-5-20251001",
+    schema_dict=None,  # or an inner JSON schema dict, without the OpenAI wrapper
+)
 ext.submit_batch("my_job")
 ext.check_batch_status("my_job", continuous=True)
 out = ext.retrieve_results_as_dataframe("my_job")
 if out is None:
-    print("Batch not finished yet; check status and retry.")
+    print("No parsed results returned; inspect batch status, logs, and raw output.")
 else:
     print(out.head())
 ```
 
-All intermediate files (JSONL input, submission manifest, raw results) are written under `batch_root_dir/<job_id>/` and can be inspected directly.
+All intermediate files (JSONL input, submission manifest, raw results) are written under `batch_root_dir/<job_id>/`. OpenAI output and error files are downloaded independently, including available partial output from unsuccessful terminal batches.
+
+Submitting the same files again creates new remote jobs. To resume OpenAI work after results have been downloaded, regenerate inputs with `create_batch_jsonl(..., exclude_processed=True)` before submitting the remainder. Use a new `job_id` for each Anthropic submission to preserve its manifest. Batch submission does not automatically deduplicate in-flight work.
 
 ---
 
@@ -314,7 +332,7 @@ Return a JSON object with this EXACT structure:
 Do not include any fields besides input_id, sentiment, and confidence.
 ```
 
-Read the result, tighten enums, add any domain-specific instructions, then pass it to `extract_df(prompt=prompt, ...)`. Defaults are `backend="openai"`, `model="gpt-4.1-mini"`; pass `backend="anthropic"` to use Claude instead. The temperature is fixed at 0, so the same `goal` reproduces the same starting prompt.
+Read the result, tighten enums, add any domain-specific instructions, then pass it to `extract_df(prompt=prompt, ...)`. Defaults are `backend="openai"`, `model="gpt-4.1-mini"`. To draft with Claude, pass both `backend="anthropic"` and an explicit Claude model, for example `model="claude-haiku-4-5-20251001"`. Drafting uses the provider's default sampling settings; repeated calls may produce different candidates. Empty or explicitly truncated drafts raise an error so you can retry or simplify the goal.
 
 ---
 
@@ -411,7 +429,7 @@ extract_df(
 )
 ```
 
-Failed API calls are retried automatically (tenacity, exponential backoff, up to 5 attempts) on `RateLimitError` and `APIError`. If a chunk still fails after retries, the failure is logged and the chunk's rows are omitted from the returned DataFrame.
+Provider SDKs perform their own retries. The package adds up to five attempts with exponential backoff for transient OpenAI errors and Anthropic rate limits. Permanent OpenAI authentication, validation, and exhausted-quota errors are not retried by the package. A request that still fails is logged and omitted; valid results from other chunks remain available. Malformed or incomplete model output is reported without automatic extra paid requests.
 
 ### draft_prompt knobs
 
@@ -419,7 +437,7 @@ Failed API calls are retried automatically (tenacity, exponential backoff, up to
 draft_prompt(
     goal,                       # required: plain-English description of what to extract
     backend="openai",           # or "anthropic"
-    model="gpt-4.1-mini",       # model for the meta-call; any chat model works
+    model="gpt-4.1-mini",       # choose a model supported by your provider
     api_key=None,               # overrides .env / environment
     base_url=None,              # for OpenRouter / Gemini compat
     print_prompt=True,          # print result to stdout (useful in notebooks)
@@ -433,11 +451,11 @@ the automatic `print` and capture only the return value.
 
 ## FAQ
 
-**Why does my DataFrame have fewer rows than I expect?** A chunk failed after retries. Check the log for the stack trace.
+**Why does my DataFrame have fewer rows than I expect?** A request failed, the model omitted an ID, or response validation rejected rows. Check the log and compare returned `input_id` values with your source IDs.
 
 **How do I restart a batch job when I lost the `job_id`?** Look under `batch_root_dir/`. The directories ARE the `job_id`s.
 
-**Is there retry logic?** Yes: tenacity, 5 attempts with exponential backoff 2-30s for `RateLimitError` and `APIError`.
+**Is there retry logic?** Yes. The package retries transient OpenAI failures and Anthropic rate limits, up to five attempts with 2-30 second backoff. Provider SDK retries may happen within each attempt. Anthropic server/connection retries are handled by its SDK.
 
 **What about nested lists and dicts in the output?** Flatten with `df.explode("entities")` (each list item becomes its own row), followed by `pd.json_normalize(df["entities"])` (each dict's keys become columns). CSV stringifies nested fields; save as JSONL (`df.to_json(..., orient="records", lines=True)`) for clean round-tripping.
 
@@ -469,6 +487,18 @@ Li, Kai, Feng Mai, Rui Shen, Chelsea Yang, and Tengfei Zhang (2026). "Dissecting
 ## GitHub
 
 Source code: [https://github.com/maifeng/lmsyz_genai_ie_rfs](https://github.com/maifeng/lmsyz_genai_ie_rfs)
+
+## Development and tests
+
+```bash
+pip install -e '.[dev,docs]'
+pytest                              # offline tests; live tests are skipped
+pytest --live -m 'live and not slow' # real provider calls; requires keys and credits
+pytest --live -m 'live and slow'     # also submits real batch jobs
+mkdocs build --strict
+```
+
+The `--live` flag is required even when provider credentials are already configured.
 
 ## License
 

@@ -164,11 +164,15 @@ runs/anthropic_job/my_job/
         submission.json         # Anthropic batch manifest (id, status, ...)
     batch_output/
         results.jsonl           # raw streamed results from Anthropic
-        errors.txt              # per-request error payloads, if any
 ```
 
-Every intermediate file is on disk so you can audit what was sent and what came back.
-Nothing is hidden in memory.
+Requests, submission manifests, and downloaded raw results are saved on disk. Anthropic per-request errors are recorded in `results.jsonl` and logged; there is no separate `errors.txt`. Downloads replace prior Anthropic results only after the new stream completes successfully.
+
+### Resume versus resubmit
+
+Every call to `submit_batches` or `submit_batch` creates new remote jobs. Calling it twice does not resume an earlier submission. For OpenAI, first download completed results, then regenerate with `create_batch_jsonl(..., exclude_processed=True)` and submit only the remaining input. This does not deduplicate in-flight requests. For Anthropic, choose a new `job_id` for each submission; reusing it replaces its submission manifest.
+
+OpenAI polling stops for `completed`, `failed`, `expired`, and `cancelled` batches, downloading any available output and error files independently. An unsuccessful terminal status does not imply every observation has a usable result. Anthropic continuous polling waits through `canceling` until `ended`.
 
 ### `max_requests_per_batch` and large inputs
 

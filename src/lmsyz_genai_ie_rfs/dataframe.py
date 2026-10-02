@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from numbers import Integral
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,51 @@ def compute_prompt_hash(prompt: str) -> str:
         16-character lowercase hex digest.
     """
     return hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:16]
+
+
+def validate_positive_integer(value: int, name: str) -> None:
+    """Reject invalid sizes before iteration or worker creation.
+
+    Args:
+        value: Requested count.
+        name: Parameter name to include in the error.
+
+    Raises:
+        ValueError: If the count is a boolean, non-integer, or non-positive.
+    """
+    if isinstance(value, bool) or not isinstance(value, Integral) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer.")
+
+
+def validate_input_dataframe(df: pd.DataFrame, id_col: str, text_col: str) -> None:
+    """Validate columns and IDs used to align extraction results and cache entries.
+
+    Args:
+        df: Input observations.
+        id_col: Identifier column.
+        text_col: Text column.
+
+    Raises:
+        ValueError: If required columns are absent or repeated, or IDs are null,
+            empty, or nonunique after string conversion.
+    """
+    for column in {id_col, text_col}:
+        if list(df.columns).count(column) != 1:
+            raise ValueError(f"Input must contain exactly one {column!r} column.")
+    ids = df[id_col]
+    if ids.isna().any():
+        raise ValueError(f"{id_col!r} must contain non-null row IDs.")
+    if ids.empty:
+        return
+    normalized = ids.map(str)
+    if normalized.str.strip().eq("").any():
+        raise ValueError(f"{id_col!r} must contain non-empty row IDs.")
+    duplicates = normalized[normalized.duplicated(keep=False)].unique().tolist()
+    if duplicates:
+        raise ValueError(
+            f"{id_col!r} must contain unique row IDs after string conversion; "
+            f"duplicate IDs: {duplicates!r}. Create a unique ID for each observation."
+        )
 
 
 class DataFrameIterator:
@@ -65,6 +111,8 @@ class DataFrameIterator:
             formatted_id_col: Output-dict key for the identifier. Default "input_id".
             formatted_text_col: Output-dict key for the text. Default "input_text".
         """
+        validate_positive_integer(chunk_size, "chunk_size")
+        validate_input_dataframe(dataframe, id_col, text_col)
         self.dataframe = dataframe
         self.chunk_size = chunk_size
         self.id_col = id_col
@@ -91,10 +139,12 @@ class DataFrameIterator:
         self._start = end
         return [
             {
-                self.formatted_id_col: str(row[self.id_col]),
-                self.formatted_text_col: str(row[self.text_col]),
+                self.formatted_id_col: str(row_id),
+                self.formatted_text_col: str(text),
             }
-            for _, row in chunk.iterrows()
+            for row_id, text in zip(
+                chunk[self.id_col].map(str), chunk[self.text_col], strict=True
+            )
         ]
 
     def __len__(self) -> int:
@@ -161,7 +211,10 @@ class SqliteCache:
                     "SELECT json_result FROM results WHERE row_id = ? AND prompt_hash = ?",
                     (row_id, prompt_hash),
                 ).fetchone()
-        return json.loads(row[0]) if row else None
+        if row is None:
+            return None
+        result: dict[str, Any] = json.loads(row[0])
+        return result
 
     def put(
         self,

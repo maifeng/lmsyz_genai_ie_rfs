@@ -19,11 +19,11 @@ class Settings(BaseSettings):
     Attributes:
         openai_api_key: OpenAI API key. Required for the OpenAI backend.
         anthropic_api_key: Anthropic API key. Required for the Anthropic backend.
-        default_model: Model identifier used when no model is specified explicitly.
-        default_backend: Backend name to use by default. Either "openai" or "anthropic".
+        default_model: Caller-readable model preference; pass explicitly to extract_df.
+        default_backend: Caller-readable backend preference; pass explicitly to extract_df.
         openai_base_url: Optional custom base URL for the OpenAI client (e.g., OpenRouter).
-        max_workers: Default number of concurrent threads for extract_df.
-        chunk_size: Default number of rows per LLM request chunk.
+        max_workers: Caller-readable worker preference; pass explicitly to extract_df.
+        chunk_size: Caller-readable chunk preference; pass explicitly to extract_df.
     """
 
     model_config = SettingsConfigDict(

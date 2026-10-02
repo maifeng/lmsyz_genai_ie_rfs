@@ -62,7 +62,7 @@ digest of the prompt that produced this row. Rows migrated from a pre-hash cache
 -- Count rows.
 SELECT COUNT(*) FROM results;
 
--- Group by prompt hash to see results from multiple prompt versions.
+-- Inspect the hashes on current rows (only one result per row_id is stored).
 SELECT prompt_hash, COUNT(*) AS n_rows
 FROM results
 GROUP BY prompt_hash
@@ -123,8 +123,12 @@ print(out.head())
 
 ### Finding missing rows
 
+These counts assume a dedicated cache for this experiment. If you reused a database,
+filter by the current prompt hash and input IDs; counts across all stored rows can
+include other inputs or older prompts.
+
 Use this pattern to identify which input IDs did not make it into the cache, which
-indicates a chunk failure:
+can indicate a failed request, missing model output, or rejected response ID:
 
 ```python
 import sqlite3
@@ -138,7 +142,7 @@ with sqlite3.connect(DB) as con:
         r[0] for r in con.execute("SELECT row_id FROM results").fetchall()
     }
 
-input_ids = set(input_df["id"].astype(str))
+input_ids = set(input_df["id"].map(str))
 missing = input_ids - cached_ids
 
 print(f"Input rows  : {len(input_ids)}")
@@ -147,7 +151,7 @@ print(f"Missing rows: {len(missing)}")
 
 if missing:
     print("Sample missing IDs:", list(missing)[:10])
-    missing_df = input_df[input_df["id"].astype(str).isin(missing)]
+    missing_df = input_df[input_df["id"].map(str).isin(missing)]
     missing_df.to_csv("runs/missing_rows.csv", index=False)
 ```
 
@@ -158,6 +162,7 @@ import sqlite3
 import pandas as pd
 
 input_df = pd.read_csv("my_corpus.csv")
+input_df["id"] = input_df["id"].map(str)
 
 with sqlite3.connect("runs/my_results.sqlite") as con:
     cached = con.execute("SELECT COUNT(*) FROM results").fetchone()[0]
@@ -174,11 +179,13 @@ import json
 import pandas as pd
 
 input_df = pd.read_csv("my_corpus.csv")
+input_df["id"] = input_df["id"].map(str)
 
 with sqlite3.connect("runs/my_results.sqlite") as con:
     raw = pd.read_sql("SELECT row_id, json_result FROM results", con)
 
 results_df = pd.json_normalize(raw["json_result"].apply(json.loads))
+results_df["input_id"] = results_df["input_id"].map(str)
 
 # Join on the shared identifier.
 # (The model copies input_id into the result; row_id is the cache key.)
@@ -196,22 +203,24 @@ print(f"Matched {n_matched} / {len(input_df)} rows")
 
 ### Chunk-level vs row-level failures
 
-All rows in a chunk share the same fate: if a chunk fails, all its rows are absent from
-the cache. The log line looks like:
+A failed request omits its chunk; a partially valid response can still contribute valid
+rows. Response validation reports rejected or missing IDs separately. A request failure
+has a log line like:
 
 ```
-extract_df: chunk failed; results for this chunk skipped.
+extract_df: chunk failed; missing results for input_ids: [...]
 ```
 
-followed by the exception traceback. A chunk typically contains `chunk_size` rows
-(default 5). If you see a cluster of consecutive missing IDs of size 5, a single chunk
-failed. Retrying the full job will re-send only the missing chunks.
+followed by the exception traceback. Inputs are shuffled before chunking, so missing
+IDs need not be consecutive. Rerunning with the same prompt/cache resends missing rows,
+possibly grouped into different chunks. A prior successful entry can remain after a
+failed `fresh=True` refresh; inspect that run's returned IDs and logs as well as the DB.
 
-If a chunk fails repeatedly (it will be retried up to 5 times with exponential backoff),
+If a request keeps failing after applicable transient-error retries,
 the rows stay absent. Narrow the problem by running those specific rows in isolation:
 
 ```python
-retry_df = input_df[input_df["id"].astype(str).isin(missing)]
+retry_df = input_df[input_df["id"].map(str).isin(missing)]
 
 out_retry = extract_df(
     retry_df,

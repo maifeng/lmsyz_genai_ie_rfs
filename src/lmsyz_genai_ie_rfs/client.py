@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections import Counter
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -22,7 +24,13 @@ from typing import Any
 import pandas as pd
 from tqdm import tqdm
 
-from lmsyz_genai_ie_rfs.dataframe import DataFrameIterator, SqliteCache, compute_prompt_hash
+from lmsyz_genai_ie_rfs.dataframe import (
+    DataFrameIterator,
+    SqliteCache,
+    compute_prompt_hash,
+    validate_input_dataframe,
+    validate_positive_integer,
+)
 from lmsyz_genai_ie_rfs.retry import retry_api_call
 from lmsyz_genai_ie_rfs.settings import settings
 
@@ -50,14 +58,83 @@ def _load_schema(schema: SchemaInput) -> dict[str, Any] | None:
 
     Returns:
         The schema as a dict, or None.
+
+    Raises:
+        TypeError: If the schema argument has an unsupported type.
+        ValueError: If a schema file does not contain a JSON object.
     """
     if schema is None:
         return None
     if isinstance(schema, (str, Path)):
-        return json.loads(Path(schema).read_text())
+        loaded: Any = json.loads(Path(schema).read_text())
+        if not isinstance(loaded, dict):
+            raise ValueError("Schema file must contain a JSON object.")
+        return loaded
     if isinstance(schema, dict):
         return schema
     raise TypeError(f"schema must be None, dict, str, or Path (got {type(schema)}).")
+
+
+def _response_rows(payload: Any) -> list[Any]:
+    """Read the response envelope without coercing malformed values into rows.
+
+    Args:
+        payload: Decoded provider response.
+
+    Returns:
+        Result rows, whose individual contents are validated by the caller.
+
+    Raises:
+        ValueError: If the response is not an object containing a result list.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("Response must be an object containing all_results or results.")
+    rows = payload.get("all_results")
+    if rows is None:
+        rows = payload.get("results")
+    if isinstance(rows, dict):
+        return [rows]
+    if not isinstance(rows, list):
+        raise ValueError("Response all_results (or results) must be an array of row objects.")
+    return rows
+
+
+def _validate_rows(rows: list[Any], expected_ids: set[str]) -> list[dict[str, Any]]:
+    """Keep unambiguous rows aligned to the submitted observations.
+
+    Args:
+        rows: Provider rows or cached rows.
+        expected_ids: IDs submitted in the corresponding chunk.
+
+    Returns:
+        Valid row objects, excluding all occurrences of duplicate IDs.
+    """
+    candidates: list[tuple[str, dict[str, Any]]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            log.warning("extract_df: omitted non-object response row: %r", row)
+            continue
+        raw_id = row.get("input_id")
+        if not isinstance(raw_id, (str, int, float)) or isinstance(raw_id, bool):
+            log.warning("extract_df: omitted row with missing or malformed input_id: %r", raw_id)
+            continue
+        if pd.isna(raw_id) or not str(raw_id).strip():
+            log.warning("extract_df: omitted row with null or empty input_id: %r", raw_id)
+            continue
+        rid = str(raw_id)
+        if rid not in expected_ids:
+            log.warning("extract_df: omitted foreign input_id %r", rid)
+            continue
+        candidates.append((rid, row))
+    counts = Counter(rid for rid, _ in candidates)
+    duplicates = {rid for rid, count in counts.items() if count > 1}
+    if duplicates:
+        log.warning("extract_df: omitted all rows with duplicate input_ids: %s", sorted(duplicates))
+    valid = [row for rid, row in candidates if rid not in duplicates]
+    missing = expected_ids - {str(row["input_id"]) for row in valid}
+    if missing:
+        log.warning("extract_df: missing results for input_ids: %s", sorted(missing))
+    return valid
 
 
 @retry_api_call
@@ -102,8 +179,7 @@ def _call_openai(
         response_format=rf,
     )
     payload = json.loads(resp.choices[0].message.content or "{}")
-    rows = payload.get("all_results") or payload.get("results") or []
-    return [rows] if isinstance(rows, dict) else list(rows)
+    return _response_rows(payload)
 
 
 @retry_api_call
@@ -151,8 +227,7 @@ def _call_anthropic(
         if start == -1 or end <= start:
             raise ValueError(f"No JSON object in Anthropic response: {raw[:500]}")
         payload = json.loads(raw[start : end + 1])
-        rows = payload.get("all_results") or payload.get("results") or []
-        return [rows] if isinstance(rows, dict) else list(rows)
+        return _response_rows(payload)
 
     tool_name = "extract_results"
     resp = client.messages.create(
@@ -168,8 +243,7 @@ def _call_anthropic(
     for block in resp.content:
         if block.type == "tool_use" and block.name == tool_name:
             payload = block.input or {}
-            rows = payload.get("all_results") or payload.get("results") or []
-            return [rows] if isinstance(rows, dict) else list(rows)
+            return _response_rows(payload)
     raise ValueError(f"No tool_use block in Anthropic response: {resp.content!r}")
 
 
@@ -219,11 +293,12 @@ def extract_df(
 
     Args:
         df: Input DataFrame. Must contain ``id_col`` and ``text_col``.
+            IDs must be non-null, non-empty, and unique after string conversion.
         prompt: System prompt sent with every chunk.
         schema: Optional JSON schema. Accepts ``None``, a dict (full OpenAI
-            wrapper, a response schema with ``all_results``, or a row schema
-            that will be auto-wrapped), or a ``str``/``Path`` pointing to a
-            JSON file containing any of the above.
+            wrapper or a complete response schema with ``all_results``), or a
+            ``str``/``Path`` pointing to a JSON file containing either form.
+            Individual row schemas are not automatically wrapped.
         backend: ``"openai"`` or ``"anthropic"``.
         model: Model identifier (e.g., ``"gpt-4.1-mini"``).
         id_col: Column in ``df`` holding row identifiers.
@@ -245,19 +320,24 @@ def extract_df(
             way (e.g., typo fix).
         api_key: Override the API key from settings / env.
         base_url: Override the OpenAI base URL (for OpenRouter, Gemini compat).
-        client: A pre-built SDK client. When given, ``backend``, ``api_key``,
-            and ``base_url`` are only used to pick the call helper.
+        client: A pre-built SDK client. ``backend`` selects the call helper;
+            ``api_key`` and ``base_url`` are ignored when a client is supplied.
 
     Returns:
-        DataFrame of result dicts, one row per input row. Rows whose chunks
-        fail are logged and omitted; remaining chunks' results are returned.
+        DataFrame of valid result dicts, at most one row per input row.
+        Malformed rows, foreign IDs, every occurrence of duplicate output IDs,
+        and missing results are logged and omitted. Valid results are cached.
+        Failed chunks do not discard results from successful chunks.
     """
-    if client is None:
-        client = _make_client(backend, api_key, base_url)
+    if backend not in {"openai", "anthropic"}:
+        raise ValueError(f"Unknown backend {backend!r}. Use 'openai' or 'anthropic'.")
+    validate_positive_integer(chunk_size, "chunk_size")
+    validate_positive_integer(max_workers, "max_workers")
+    validate_input_dataframe(df, id_col, text_col)
 
     schema_dict = _load_schema(schema)
     if backend == "openai":
-        call_fn = _call_openai
+        call_fn: Callable[..., list[Any]] = _call_openai
         call_args: dict[str, Any] = {"response_format": schema_dict}
     else:
         call_fn = _call_anthropic
@@ -278,20 +358,26 @@ def extract_df(
     lookup_hash = None if ignore_prompt_hash else phash
 
     working = df.copy()
+    cached_results: dict[str, dict[str, Any]] = {}
     if not fresh:
-        done = cache.all_ids(prompt_hash=lookup_hash)
-        if done:
-            before = len(working)
-            working = working[~working[id_col].astype(str).isin(done)]
-            print(
-                f"SqliteCache: skipping {before - len(working)} / {before} rows "
-                f"(prompt_hash={'any' if ignore_prompt_hash else phash})."
-            )
+        cached_ids = cache.all_ids(prompt_hash=lookup_hash)
+        for rid in df[id_col].map(str):
+            if rid not in cached_ids:
+                continue
+            cached = cache.get(rid, prompt_hash=lookup_hash)
+            if cached is not None:
+                validated = _validate_rows([cached], {rid})
+                if validated:
+                    cached_results[rid] = validated[0]
+        if cached_results:
+            working = working[~working[id_col].map(str).isin(cached_results)]
+            log.info("extract_df: reusing %d / %d cached rows.", len(cached_results), len(df))
 
     if working.empty:
-        print("extract_df: all rows cached; returning from cache.")
-        rows = [cache.get(str(rid), prompt_hash=lookup_hash) for rid in df[id_col].astype(str)]
-        return pd.DataFrame([r for r in rows if r is not None])
+        return pd.DataFrame(list(cached_results.values()))
+
+    if client is None:
+        client = _make_client(backend, api_key, base_url)
 
     working = working.sample(frac=1, random_state=42).reset_index(drop=True)
     chunks = list(DataFrameIterator(working, id_col=id_col, text_col=text_col, chunk_size=chunk_size))
@@ -304,21 +390,18 @@ def extract_df(
         }
         for fut in tqdm(as_completed(futures), total=len(futures), desc="extract_df"):
             try:
-                rows = fut.result()
+                expected_ids = {row["input_id"] for row in futures[fut]}
+                rows = _validate_rows(fut.result(), expected_ids)
                 all_results.extend(rows)
                 for row in rows:
                     rid = str(row.get("input_id", ""))
                     if rid:
                         cache.put(rid, row, prompt_hash=phash)
             except Exception:
-                log.exception("extract_df: chunk failed; results for this chunk skipped.")
+                log.exception(
+                    "extract_df: chunk failed; missing results for input_ids: %s",
+                    [row["input_id"] for row in futures[fut]],
+                )
 
-    if not fresh:
-        done_in_run = {str(r.get("input_id", "")) for r in all_results}
-        for rid in df[id_col].astype(str):
-            if rid not in done_in_run:
-                cached = cache.get(rid, prompt_hash=lookup_hash)
-                if cached is not None:
-                    all_results.append(cached)
-
+    all_results.extend(cached_results.values())
     return pd.DataFrame(all_results)

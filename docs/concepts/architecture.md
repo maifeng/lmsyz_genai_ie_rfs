@@ -18,7 +18,7 @@ flowchart LR
     style B fill:#fef3e8,stroke:#c16d19
 ```
 
-**Concurrent path (`extract_df`)**: a threadpool fires live API calls in parallel. A 20-row job finishes in seconds. Rows are written to SQLite as they complete, so a crash loses nothing. This is what you want 95% of the time.
+**Concurrent path (`extract_df`)**: a threadpool fires live API calls in parallel. A 20-row job finishes in seconds. Rows are committed to SQLite as results are processed. Committed rows can be reused after a restart; in-flight calls and results waiting to be committed may need rerunning.
 
 **Batch path (`OpenAIBatchExtractor`, `AnthropicBatchExtractor`)**: submit a request blob (JSONL for OpenAI, JSON body for Anthropic), wait up to 24 hours, retrieve. About 50% cheaper per token. Use when you have tens of thousands of rows and can schedule overnight processing.
 
@@ -46,9 +46,9 @@ Key behaviors:
 - **Chunking.** `DataFrameIterator` slices the working DataFrame into lists of `{"input_id": ..., "input_text": ...}` dicts, `chunk_size` rows at a time. Each chunk is one API call.
 - **Shuffle.** Before chunking, `extract_df` shuffles the working rows (fixed `random_state=42`). This distributes variable-length inputs more evenly across workers.
 - **ThreadPoolExecutor.** All chunks are submitted at once via `concurrent.futures.as_completed`. Progress is shown with `tqdm`.
-- **Retries.** Each call function is decorated with `@retry_api_call` (tenacity, 5 attempts, exponential backoff 2-30 s) for `RateLimitError` and `APIError`. Retries happen at the individual chunk level.
+- **Retries.** Provider SDKs retry according to their own policies. The package adds up to five attempts with 2-30 second backoff for transient OpenAI failures and Anthropic rate limits; it does not retry permanent OpenAI errors or malformed output. Anthropic server/connection retries stay with its SDK.
 - **Per-chunk error handling.** If a chunk exhausts all retries, `extract_df` logs the exception via `log.exception` and skips that chunk. The other chunks' results are still returned. The returned DataFrame will have fewer rows than the input; check the log.
-- **Cache write.** Each successful row is written to `SqliteCache` immediately after the chunk returns, before the next chunk finishes. A crash mid-run loses at most one chunk's work.
+- **Cache write.** The main thread validates returned IDs and commits valid rows to `SqliteCache`. Other requests can finish while these writes are in progress. Only committed rows are guaranteed to survive interruption; there is no one-chunk bound on unpersisted work.
 - **Cache read.** At startup, `extract_df` reads the set of already-cached row IDs (filtered by `prompt_hash`) and removes them from the working set.
 
 ---

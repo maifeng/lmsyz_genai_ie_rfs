@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.19.5
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -30,8 +30,7 @@
 # %% [markdown]
 # ## 1. Install
 #
-# In Colab, uncomment and run. Pinned to the workshop alpha to keep
-# everyone on the same version.
+# In Colab, uncomment and run. This installs the latest published version.
 
 # %%
 # !pip install -q -U lmsyz_genai_ie_rfs
@@ -39,8 +38,9 @@
 # %% [markdown]
 # ## 2. Set your API key
 #
-# The library reads `OPENAI_API_KEY` / `OPENROUTER_API_KEY` /
-# `ANTHROPIC_API_KEY` from the environment. If you don't have one yet,
+# The main notebook cells use OpenAI and require `OPENAI_API_KEY`.
+# The optional provider examples below use explicit keys for their endpoints.
+# If you do not have a key yet,
 # create a key at the provider's key page (you may need to add a few
 # dollars of credit before the key actually works):
 #
@@ -48,9 +48,8 @@
 # - OpenRouter (one key, hundreds of models: Llama, Gemini, DeepSeek...): https://openrouter.ai/keys
 # - Anthropic (Claude): https://console.anthropic.com/settings/keys
 #
-# **Uncomment the line that matches your provider below and paste your
-# key**, otherwise the extraction cell will fail with an authentication
-# error.
+# **Set `OPENAI_API_KEY` for the main notebook.** If using only another
+# provider, adapt the extraction call using sections 7 or 8 before running it.
 
 # %%
 import os
@@ -154,7 +153,8 @@ Notes:
 #
 # Call `extract_df`. The model returns JSON; the library lands it in a
 # DataFrame. Each completed row is persisted to the SQLite cache, so
-# a crash loses nothing.
+# committed results can be reused after a restart. In-flight or uncommitted
+# results may need rerunning.
 #
 # Three knobs worth seeing once explicitly (rather than as defaults):
 #
@@ -166,8 +166,8 @@ Notes:
 # - The combination of the two leads to 100x results faster than a naive loop over rows.
 # - **`api_key=os.environ["OPENAI_API_KEY"]`**: passed explicitly so we
 #   bypass the package's `pydantic-settings` singleton, which caches the
-#   key at import time. If your environment variable changes after the
-#   first import, only an explicit `api_key=` will pick up the new value.
+#   key at import time. Pass `api_key=` explicitly when changing a key
+#   after import, or restart the kernel.
 
 # %%
 from lmsyz_genai_ie_rfs import extract_df
@@ -328,29 +328,33 @@ out_strict.head()
 # Get an OpenRouter key at https://openrouter.ai/keys, then:
 
 # %%
-out_ds = extract_df(
-    demo,
-    prompt=CULTURE_PROMPT,
-    backend="openai",  # OpenAI-compatible client
-    base_url="https://openrouter.ai/api/v1",  # point it at OpenRouter
-    api_key=os.environ["OPENROUTER_API_KEY"],
-    model="deepseek/deepseek-v4-flash",  # any OpenRouter slug
-    id_col="review_id",
-    text_col="text",
-    cache_path="glassdoor_ds.sqlite",
-    chunk_size=5,
-    max_workers=20,
-)
+if os.environ.get("OPENROUTER_API_KEY"):
+    out_ds = extract_df(
+        demo,
+        prompt=CULTURE_PROMPT,
+        backend="openai",  # OpenAI-compatible client
+        base_url="https://openrouter.ai/api/v1",  # point it at OpenRouter
+        api_key=os.environ["OPENROUTER_API_KEY"],
+        model="deepseek/deepseek-v4-flash",  # any OpenRouter slug
+        id_col="review_id",
+        text_col="text",
+        cache_path="glassdoor_ds.sqlite",
+        chunk_size=5,
+        max_workers=20,
+    )
+else:
+    print("Optional OpenRouter example skipped; set OPENROUTER_API_KEY to run it.")
 
 # %%
-out_ds.head()
+if os.environ.get("OPENROUTER_API_KEY"):
+    print(out_ds.head())
 
 # %% [markdown]
 # ## 9. Resume on interrupt, and what happens when you edit the prompt
 #
-# Because `cache_path=` is required, your run is always resumable. If the
-# notebook crashes after 60k of 100k rows, those 60k rows are already on
-# disk. Rerun the same cell and it picks up where it left off.
+# If 60k of 100k rows have been committed to the cache before an
+# interruption, rerunning the same prompt reuses those 60k rows. Calls in
+# flight and results waiting to be committed may need to be repeated.
 #
 # Each cached row is stamped with `sha256(prompt)[:16]`. If you edit the
 # prompt and rerun, the new hash will not match the stored hash, so the
@@ -371,8 +375,11 @@ out_ds.head()
 # - **Want to reuse cached rows even though the prompt changed** (e.g.
 #   you only fixed a typo)? Pass `ignore_prompt_hash=True`. The library
 #   ignores the hash mismatch and treats the existing rows as valid.
-# - **Want to wipe the cache and start fresh?** Pass `fresh=True`, or
-#   delete the `.sqlite` file.
+# - **Want to reprocess every row?** Pass `fresh=True`. Successful rows
+#   overwrite earlier results; failed rows retain old cache entries. To clear
+#   the database, explicitly delete the file or choose a new path.
+# - Use a separate cache per model, schema, provider, and corpus version.
+#   Changing these while keeping IDs and prompt unchanged reuses old results.
 
 
 # %% [markdown]
@@ -382,7 +389,9 @@ out_ds.head()
 # exchange for slower turnaround (up to 24 hours, usually much faster).
 # The lifecycle has four steps. Everything is keyed by a string `job_id`,
 # which is also the subdirectory name under `batch_jobs/`. Submitting
-# twice with the same `job_id` resumes, skipping rows already done.
+# twice creates new remote batches. For OpenAI resume, download results,
+# regenerate inputs with `exclude_processed=True`, then submit the remainder.
+# In-flight requests are not automatically deduplicated.
 #
 # Demo on the first 100 reviews to keep wait time short.
 # Note that the Batch API has its limitation, for OpenAI:
@@ -404,7 +413,7 @@ batch.create_batch_jsonl(
     prompt=CULTURE_PROMPT,
     job_id="culture_v1",
     model_name="gpt-4o-mini",
-    chunk_size=10000,
+    chunk_size=5,
 )
 
 # %% [markdown]
@@ -425,7 +434,10 @@ batch.check_batch_status(job_id="culture_v1")
 
 # %%
 results = batch.retrieve_results_as_dataframe(job_id="culture_v1")
-results.head()
+if results is None:
+    print("No parsed results yet; check status and retry after completion.")
+else:
+    print(results.head())
 
 # %% [markdown]
 # ## 10b. (Bonus) Draft a starting prompt with `draft_prompt`

@@ -19,13 +19,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
-import pytest
 
 from lmsyz_genai_ie_rfs.batch import OpenAIBatchExtractor
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -247,7 +245,6 @@ class TestCreateBatchJsonlStructure:
         requests = self._get_all_requests(tmp_path, _JOB_ID)
         for req in requests:
             custom_id = req["custom_id"]
-            parts = custom_id.split("-")
             # job_id itself contains a hyphen, so there will be 5 parts total:
             # "test", "job", "001", batch_counter, request_counter
             assert custom_id.startswith(_JOB_ID + "-"), (

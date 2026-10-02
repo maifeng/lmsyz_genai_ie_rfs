@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.19.5
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -67,7 +67,7 @@ Step-by-step instructions:
 1. input_id: Copy the input_id from the row verbatim.
 2. entities: List every named entity mentioned in the text. For each entity give:
    - name: the surface form as it appears in the text.
-   - type: one of "PERSON", "ORG", "PRODUCT", "DATE", "MONEY".
+   - type: one of "PERSON", "ORG", "PRODUCT", "DATE", "MONEY", "EVENT".
 3. causal_triples: If the text explicitly states a cause and effect, list each as a
    three-element array ["cause", "relation", "effect"]. If there is no explicit
    causation, return an empty list []. All elements should be concisely summarized, in three words or less.
@@ -83,7 +83,7 @@ Return a JSON object with this EXACT structure:
         {"name": "Apple",    "type": "ORG"},
         {"name": "Tim Cook", "type": "PERSON"}
       ],
-      "causal_triples": [[cause_1, relation_1, effect_1], [cause_2, relation_2, effect_2], ...],
+      "causal_triples": [["acquisition", "enabled", "market entry"]],
       "sentiment": "positive/neutral/negative"
     }
   ]

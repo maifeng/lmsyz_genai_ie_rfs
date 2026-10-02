@@ -8,12 +8,15 @@ costs before committing to a provider.
 ## Solution
 
 The three variants below all call `extract_df` with the same `prompt` and `schema` file.
-Only `backend`, `model`, `api_key`, and `base_url` differ.
+Use a separate cache path for each experiment, along with the appropriate `backend`, `model`, `api_key`, and `base_url`. Model, provider, schema, and text changes do not invalidate a cache automatically.
 
 ```python
 import os
+from pathlib import Path
 import pandas as pd
 from lmsyz_genai_ie_rfs import extract_df
+
+Path("runs").mkdir(parents=True, exist_ok=True)
 
 df = pd.DataFrame({
     "id": [f"doc_{i}" for i in range(5)],
@@ -64,7 +67,7 @@ No extra configuration is needed.
 out_anthropic = extract_df(
     df,
     prompt=prompt,
-    cache_path="runs/anthropic.sqlite",    # separate file: no hash collisions
+    cache_path="runs/anthropic.sqlite",    # separate file for this experiment
     model="claude-haiku-4-5-20251001",
     backend="anthropic",
     schema=SCHEMA,
@@ -146,11 +149,12 @@ upload the file using the `google-generativeai` SDK, then pass the resulting fil
 
 ### Use separate `cache_path` files per provider
 
-Using different SQLite files per provider (as in the examples above) avoids hash
-collisions and makes side-by-side comparison straightforward. Row IDs are the same across
-files, so a merge on `input_id` works cleanly. Using the same file is also valid if you
-want all results in one place, but you must use different `prompt_hash` values to
-distinguish results (which is automatic as long as the prompts differ).
+Use a separate SQLite file for each model, provider, schema, and corpus version.
+The cache key is the row ID, and reuse is gated only by the prompt hash. Keeping the
+same IDs and prompt while changing model or input text reuses earlier results unless
+`fresh=True` is set. A changed prompt overwrites the existing result for the same ID;
+the database does not preserve version history. Separate files preserve both experiments
+for comparison.
 
 ### Temperature note
 

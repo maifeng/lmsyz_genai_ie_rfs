@@ -20,23 +20,53 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any
 
 import anthropic
 import pandas as pd
 from tqdm import tqdm
 
-from lmsyz_genai_ie_rfs.dataframe import DataFrameIterator
+from lmsyz_genai_ie_rfs.dataframe import (
+    DataFrameIterator,
+    validate_input_dataframe,
+    validate_positive_integer,
+)
 
 log = logging.getLogger(__name__)
+
+
+def _object_rows(payload: Any, custom_id: str) -> list[dict[str, Any]]:
+    """Retain object rows and report unusable extraction output.
+
+    Args:
+        payload: Untrusted model output under a result-container key.
+        custom_id: Request identifier used in warnings.
+
+    Returns:
+        Valid object rows, preserving their original order.
+    """
+    if isinstance(payload, dict):
+        payload = [payload]
+    if not isinstance(payload, list):
+        log.warning("Ignoring malformed rows for request %s.", custom_id)
+        return []
+    rows: list[dict[str, Any]] = []
+    for index, row in enumerate(payload, start=1):
+        if isinstance(row, dict):
+            rows.append(row)
+        else:
+            log.warning("Ignoring non-object row %s for request %s.", index, custom_id)
+    return rows
 
 
 class AnthropicBatchExtractor:
     """Submit, monitor, and retrieve Anthropic Message Batches API jobs from a DataFrame.
 
-    Lifecycle (parallels ``GPTBatchJobClassifier`` but with a different wire format):
+    Lifecycle (parallels ``OpenAIBatchExtractor`` but with a different wire format):
 
     1. ``create_batch_requests``: builds an in-memory list of requests and writes
        it to ``batch_input/requests.json`` for inspection / reproducibility.
@@ -53,7 +83,8 @@ class AnthropicBatchExtractor:
             submission.json         -- returned batch manifest (id, status, ...)
         batch_output/
             results.jsonl           -- raw streamed results from Anthropic
-            errors.txt              -- per-request error payloads, if any
+
+    Failed requests remain in the raw results file and are reported through logging.
 
     Attributes:
         batch_root_dir: Root directory for all batch jobs.
@@ -102,7 +133,7 @@ class AnthropicBatchExtractor:
 
         Args:
             dataframe: Input DataFrame. Must contain id_col and text_col.
-            id_col: Column name for row identifiers.
+            id_col: Column name for non-null row IDs, unique after string conversion.
             text_col: Column name for text content.
             prompt: System prompt text (cached via cache_control).
             job_id: Unique job identifier. Used as the subdirectory name.
@@ -117,6 +148,8 @@ class AnthropicBatchExtractor:
         Returns:
             Path to the written ``requests.json`` file.
         """
+        validate_positive_integer(chunk_size, "chunk_size")
+        validate_input_dataframe(dataframe, id_col, text_col)
         job_dir = self.batch_root_dir / job_id
         input_dir = job_dir / "batch_input"
         output_dir = job_dir / "batch_output"
@@ -194,7 +227,7 @@ class AnthropicBatchExtractor:
         interval: int = 30,
         timeout: int | None = None,
     ) -> str:
-        """Poll batch status. Returns the terminal status string.
+        """Poll batch status and optionally wait until the batch ends.
 
         Args:
             job_id: The job identifier.
@@ -203,8 +236,9 @@ class AnthropicBatchExtractor:
             timeout: Optional upper bound on polling time in seconds.
 
         Returns:
-            The terminal ``processing_status`` from Anthropic: one of
-            "in_progress", "canceling", "ended".
+            The latest ``processing_status``: "in_progress", "canceling", or
+            "ended". Continuous polling returns only "ended"; cancellation
+            remains in progress while the status is "canceling".
 
         Raises:
             TimeoutError: If ``timeout`` elapses before the batch ends.
@@ -226,7 +260,7 @@ class AnthropicBatchExtractor:
             print(
                 f"Anthropic batch {batch_id}: status={batch.processing_status} counts={counts}"
             )
-            if batch.processing_status in ("ended", "canceling"):
+            if batch.processing_status == "ended":
                 return batch.processing_status
             if not continuous:
                 return batch.processing_status
@@ -242,6 +276,9 @@ class AnthropicBatchExtractor:
         tool_name: str = "extract_results",
     ) -> pd.DataFrame | None:
         """Stream results and flatten tool_use outputs into a DataFrame.
+
+        Raw results replace the local file only after the stream completes.
+        A failed download preserves the previous file and raises the error.
 
         Args:
             job_id: The job identifier.
@@ -267,55 +304,62 @@ class AnthropicBatchExtractor:
         results_path = output_dir / "results.jsonl"
 
         rows: list[dict[str, Any]] = []
-        with open(results_path, "w") as results_file:
-            for entry in self.client.messages.batches.results(batch_id):
-                # Persist raw entry for reproducibility.
-                results_file.write(entry.model_dump_json() + "\n")
+        temporary_path: Path | None = None
+        try:
+            with NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=output_dir, prefix=".results-",
+                suffix=".tmp", delete=False,
+            ) as results_file:
+                temporary_path = Path(results_file.name)
+                for entry in self.client.messages.batches.results(batch_id):
+                    # Persist raw entry for reproducibility.
+                    results_file.write(entry.model_dump_json() + "\n")
 
-                if entry.result.type != "succeeded":
-                    log.warning(
-                        "Anthropic batch %s: request %s did not succeed (%s).",
-                        batch_id,
-                        entry.custom_id,
-                        entry.result.type,
-                    )
-                    continue
+                    if entry.result.type != "succeeded":
+                        log.warning(
+                            "Anthropic batch %s: request %s did not succeed (%s).",
+                            batch_id,
+                            entry.custom_id,
+                            entry.result.type,
+                        )
+                        continue
 
-                message = entry.result.message
-                for block in message.content:
-                    if block.type == "tool_use" and block.name == tool_name:
-                        payload = block.input
-                        batch_rows = (
-                            payload.get("all_results")
-                            if isinstance(payload, dict)
-                            else None
-                        ) or []
-                        if isinstance(batch_rows, dict):
-                            batch_rows = [batch_rows]
-                        rows.extend(batch_rows)
-                    elif block.type == "text":
-                        # Free-form path: tolerate ```json fences and mild preamble
-                        # by extracting the outermost JSON object.
-                        import re as _re
-                        raw = block.text.strip()
-                        raw = _re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=_re.MULTILINE)
-                        start, end = raw.find("{"), raw.rfind("}")
-                        inner: list[dict[str, Any]] | dict[str, Any] = []
-                        if start != -1 and end > start:
-                            try:
-                                parsed = json.loads(raw[start : end + 1])
-                                inner = (
-                                    parsed.get("all_results")
-                                    or parsed.get("results")
-                                    or []
-                                )
-                            except json.JSONDecodeError:
-                                inner = []
-                        if isinstance(inner, dict):
-                            inner = [inner]
-                        if inner:
-                            rows.extend(inner)
-                        else:
-                            rows.append({"custom_id": entry.custom_id, "text": block.text})
+                    message = entry.result.message
+                    for block in message.content:
+                        if block.type == "tool_use" and block.name == tool_name:
+                            payload = block.input
+                            batch_rows = (
+                                payload.get("all_results")
+                                if isinstance(payload, dict)
+                                else None
+                            ) or []
+                            rows.extend(_object_rows(batch_rows, entry.custom_id))
+                        elif block.type == "text":
+                            # Free-form path: tolerate ```json fences and mild preamble
+                            # by extracting the outermost JSON object.
+                            raw = block.text.strip()
+                            raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=re.MULTILINE)
+                            start, end = raw.find("{"), raw.rfind("}")
+                            inner: Any = []
+                            if start != -1 and end > start:
+                                try:
+                                    parsed = json.loads(raw[start : end + 1])
+                                    inner = next(
+                                        (parsed[key] for key in ("all_results", "results")
+                                         if key in parsed),
+                                        [],
+                                    )
+                                except json.JSONDecodeError:
+                                    inner = []
+                            valid_rows = _object_rows(inner, entry.custom_id)
+                            if valid_rows:
+                                rows.extend(valid_rows)
+                            else:
+                                rows.append({"custom_id": entry.custom_id, "text": block.text})
+
+            temporary_path.replace(results_path)
+        finally:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
 
         return pd.DataFrame(rows) if rows else None

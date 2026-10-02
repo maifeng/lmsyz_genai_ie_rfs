@@ -18,4 +18,4 @@ constraints, and then pass the edited string to `extract_df(prompt=...)`.
 - [extract_df](extract_df.md): the primary extraction entry point that consumes the
   prompt produced here.
 - [Prompts and schemas](../concepts/prompts-and-schemas.md): house-style rules that
-  `draft_prompt` enforces automatically.
+  `draft_prompt` asks the model to follow. Review the generated candidate before use.

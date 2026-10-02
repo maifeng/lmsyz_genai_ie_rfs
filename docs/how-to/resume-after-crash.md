@@ -12,8 +12,11 @@ SQLite file, filters those rows out of the working set, processes only the remai
 then returns all rows together.
 
 ```python
+from pathlib import Path
 import pandas as pd
 from lmsyz_genai_ie_rfs import extract_df
+
+Path("runs").mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv("my_corpus.csv")   # e.g., 100,000 rows with "id" and "text" columns
 
@@ -46,11 +49,14 @@ If the process is interrupted and you rerun the exact same cell, the library:
 
 No code change is needed. Just rerun.
 
-### Simulating a crash on 20 rows
+### Demonstrating cache reuse on 20 rows
 
 ```python
+from pathlib import Path
 import pandas as pd
 from lmsyz_genai_ie_rfs import extract_df
+
+Path("runs").mkdir(parents=True, exist_ok=True)
 
 # Build a small test DataFrame.
 df = pd.DataFrame({
@@ -75,10 +81,10 @@ out2 = extract_df(df, prompt=prompt, cache_path=CACHE, backend="openai", model="
 print(f"Run 2 returned {len(out2)} rows (all from cache)")
 ```
 
-You will see a log line like:
+With INFO logging enabled (`logging.basicConfig(level=logging.INFO)`), a cached rerun reports:
 
 ```
-SqliteCache: skipping 20 / 20 rows (prompt_hash=a3f9...).
+extract_df: reusing 20 / 20 cached rows.
 ```
 
 ### Inspecting cache contents
@@ -109,7 +115,7 @@ sqlite3 runs/extraction.sqlite "SELECT COUNT(*) FROM results;"
 
 ### The opposite lever: `fresh=True`
 
-If you want to discard the cache and reprocess every row from scratch, pass `fresh=True`:
+To bypass cached reads and reprocess every input row, pass `fresh=True`:
 
 ```python
 out = extract_df(
@@ -122,14 +128,12 @@ out = extract_df(
 ```
 
 This is useful when you have changed the model, or when you want a clean comparison
-against a prior run. The old rows in the SQLite file are overwritten as new results come
-in.
+against a prior run. Successful rows overwrite their previous entries. A failed refresh leaves earlier entries intact, so a later ordinary run may reuse them. Use a new cache file when you need an independent experiment.
 
 ## Explanation
 
 `cache_path` is required, not optional. The library treats it as the results database for
-the job. Every row is written to the file the moment it completes, so partial progress is
-never lost. The file is a plain SQLite database; you can open it in any SQLite browser,
+the job. Valid rows are committed as returned results are processed. Committed progress survives interruption; in-flight requests and uncommitted results may need to be repeated. The file is a plain SQLite database; you can open it in any SQLite browser,
 `DB Browser for SQLite`, or from Python with the standard `sqlite3` module.
 
 The two-run lifecycle looks like this:
@@ -165,7 +169,7 @@ the working DataFrame before building the thread pool. The skipped rows are retr
 from the cache at the end and merged into the result.
 
 A chunk that fails is logged and its rows are omitted from the output. You will see
-`extract_df: chunk failed; results for this chunk skipped.` in the log. Those row IDs
+`extract_df: chunk failed; missing results for input_ids: [...]` in the log. Those row IDs
 will NOT be in the cache, so the next run will retry them automatically.
 
 ## Related
