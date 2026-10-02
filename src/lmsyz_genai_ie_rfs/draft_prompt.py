@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .settings import settings
+
 EXEMPLAR_GOAL = (
     "extract named entities, causal relations, and overall sentiment "
     "from short news sentences"
@@ -101,7 +103,7 @@ def _make_client(backend: str, api_key: str | None, base_url: str | None) -> Any
 
     Args:
         backend: ``"openai"`` or ``"anthropic"``.
-        api_key: Provider API key. If None, the SDK reads its own env var.
+        api_key: Provider API key override. Otherwise use settings, then the SDK environment.
         base_url: OpenAI base-URL override (OpenRouter, Gemini compat).
 
     Returns:
@@ -114,6 +116,10 @@ def _make_client(backend: str, api_key: str | None, base_url: str | None) -> Any
         from openai import OpenAI
 
         kwargs: dict[str, Any] = {}
+        if api_key is None and settings.openai_api_key is not None:
+            api_key = settings.openai_api_key.get_secret_value()
+        if base_url is None:
+            base_url = settings.openai_base_url
         if api_key is not None:
             kwargs["api_key"] = api_key
         if base_url is not None:
@@ -123,6 +129,8 @@ def _make_client(backend: str, api_key: str | None, base_url: str | None) -> Any
         from anthropic import Anthropic
 
         kwargs = {}
+        if api_key is None and settings.anthropic_api_key is not None:
+            api_key = settings.anthropic_api_key.get_secret_value()
         if api_key is not None:
             kwargs["api_key"] = api_key
         return Anthropic(**kwargs)
@@ -142,20 +150,26 @@ def draft_prompt(
 
     Sends a one-shot meta-prompt to ``model`` and returns the prompt text.
     The result is a starting point; read it and edit before running
-    ``extract_df``.
+    ``extract_df``. Sampling uses the provider's default temperature.
 
     Args:
         goal: Plain-English description of what to extract or measure.
         backend: ``"openai"`` or ``"anthropic"``.
         model: Model identifier for the meta-call (defaults to
-            ``gpt-4.1-mini``; any chat model works).
-        api_key: Override the API key from environment.
-        base_url: OpenAI base-URL override (for OpenRouter, Gemini compat).
+            ``gpt-4.1-mini``). Supply an Anthropic model explicitly when
+            using ``backend="anthropic"``.
+        api_key: Override the API key from settings (.env or environment).
+        base_url: Override the OpenAI base URL from settings (for OpenRouter,
+            Gemini compatibility).
         print_prompt: When True, print the result to stdout so a notebook
             user sees it without an extra ``print`` call.
 
     Returns:
         Prompt string ready to edit and pass to ``extract_df(prompt=...)``.
+
+    Raises:
+        ValueError: If the backend is unknown, or the model returns an empty
+            response or an explicitly token-truncated response.
     """
     client = _make_client(backend, api_key, base_url)
     user_msg = META_USER_TEMPLATE.format(
@@ -166,13 +180,17 @@ def draft_prompt(
     if backend == "openai":
         resp = client.chat.completions.create(
             model=model,
-            temperature=0.0,
             messages=[
                 {"role": "system", "content": META_SYSTEM},
                 {"role": "user", "content": user_msg},
             ],
         )
-        text = resp.choices[0].message.content or ""
+        if not resp.choices:
+            raise ValueError("The model returned no prompt choices. Try drafting again.")
+        choice = resp.choices[0]
+        if getattr(choice, "finish_reason", None) == "length":
+            raise ValueError("The draft prompt was truncated by the model's token limit.")
+        text = choice.message.content or ""
     else:
         resp = client.messages.create(
             model=model,
@@ -180,6 +198,8 @@ def draft_prompt(
             system=META_SYSTEM,
             messages=[{"role": "user", "content": user_msg}],
         )
+        if getattr(resp, "stop_reason", None) == "max_tokens":
+            raise ValueError("The draft prompt was truncated by the model's token limit.")
         text = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
 
     text = text.strip()
@@ -190,6 +210,9 @@ def draft_prompt(
         if lines and lines[-1].strip() == "```":
             lines = lines[:-1]
         text = "\n".join(lines).strip()
+
+    if not text:
+        raise ValueError("The model returned an empty draft prompt. Try drafting again.")
 
     if print_prompt:
         print(text)
