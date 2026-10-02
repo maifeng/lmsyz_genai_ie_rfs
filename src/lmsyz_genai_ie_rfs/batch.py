@@ -156,9 +156,9 @@ class OpenAIBatchExtractor:
                         "Prior batch results must contain 'input_id' to resume. "
                         "Inspect the saved results or use exclude_processed=False."
                     )
-                done_ids = set(prior["input_id"].dropna().astype(str))
+                done_ids = set(prior["input_id"].dropna().map(str))
                 before = len(dataframe)
-                dataframe = dataframe[~dataframe[id_col].astype(str).isin(done_ids)]
+                dataframe = dataframe[~dataframe[id_col].map(str).isin(done_ids)]
                 print(
                     f"Excluded {before - len(dataframe)} already-processed rows; "
                     f"{len(dataframe)} remain."

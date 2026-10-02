@@ -361,7 +361,7 @@ def extract_df(
     cached_results: dict[str, dict[str, Any]] = {}
     if not fresh:
         cached_ids = cache.all_ids(prompt_hash=lookup_hash)
-        for rid in df[id_col].astype(str):
+        for rid in df[id_col].map(str):
             if rid not in cached_ids:
                 continue
             cached = cache.get(rid, prompt_hash=lookup_hash)
@@ -370,7 +370,7 @@ def extract_df(
                 if validated:
                     cached_results[rid] = validated[0]
         if cached_results:
-            working = working[~working[id_col].astype(str).isin(cached_results)]
+            working = working[~working[id_col].map(str).isin(cached_results)]
             log.info("extract_df: reusing %d / %d cached rows.", len(cached_results), len(df))
 
     if working.empty:

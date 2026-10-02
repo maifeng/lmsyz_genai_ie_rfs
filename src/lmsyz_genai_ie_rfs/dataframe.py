@@ -67,7 +67,9 @@ def validate_input_dataframe(df: pd.DataFrame, id_col: str, text_col: str) -> No
     ids = df[id_col]
     if ids.isna().any():
         raise ValueError(f"{id_col!r} must contain non-null row IDs.")
-    normalized = ids.astype(str)
+    if ids.empty:
+        return
+    normalized = ids.map(str)
     if normalized.str.strip().eq("").any():
         raise ValueError(f"{id_col!r} must contain non-empty row IDs.")
     duplicates = normalized[normalized.duplicated(keep=False)].unique().tolist()
@@ -141,7 +143,7 @@ class DataFrameIterator:
                 self.formatted_text_col: str(text),
             }
             for row_id, text in zip(
-                chunk[self.id_col].astype(str), chunk[self.text_col], strict=True
+                chunk[self.id_col].map(str), chunk[self.text_col], strict=True
             )
         ]
 

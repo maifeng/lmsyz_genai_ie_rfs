@@ -335,3 +335,30 @@ def test_anthropic_unparsed_text_preserves_fallback(tmp_path: Path, text: str) -
     results = extractor.retrieve_results_as_dataframe("job")
     assert results is not None
     assert results.to_dict("records") == [{"custom_id": "request-1", "text": text}]
+
+
+
+@pytest.mark.parametrize("completed_index", [0, 1])
+def test_datetime_batch_resume_preserves_scalar_ids(tmp_path: Path, completed_index: int) -> None:
+    """Exclude completed date IDs and preserve remaining IDs after subsetting.
+
+    Args:
+        tmp_path: Temporary batch directory.
+        completed_index: Index of the already completed observation.
+    """
+    extractor = _extractor(tmp_path)
+    output = _manifest(tmp_path)
+    ids = ["2026-01-01 00:00:00", "2026-01-02 12:00:00"]
+    record = {"response": {"body": {"choices": [{"message": {
+        "content": json.dumps({"all_results": [{"input_id": ids[completed_index]}]}),
+    }}]}}}
+    (output / "batch_result_test.jsonl").write_text(json.dumps(record) + "\n")
+    frame = pd.DataFrame({"id": pd.to_datetime(ids), "text": ["midnight", "noon"]})
+    extractor.create_batch_jsonl(
+        frame, "id", "text", "Extract", "job", "gpt-4.1-mini", chunk_size=1,
+    )
+    requests = [json.loads(line) for path in (tmp_path / "job" / "batch_input").glob("*.jsonl")
+                for line in path.read_text().splitlines()]
+    assert len(requests) == 1
+    submitted = json.loads(requests[0]["body"]["messages"][1]["content"])
+    assert submitted[0]["input_id"] == ids[1 - completed_index]

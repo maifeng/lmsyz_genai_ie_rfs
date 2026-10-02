@@ -296,7 +296,7 @@ def test_datetime_ids_match_submissions_and_cache_resume(tmp_path: Path) -> None
         "id": pd.to_datetime(["2026-01-01", "2026-01-02"]),
         "text": ["first", "second"],
     })
-    expected = {"2026-01-01", "2026-01-02"}
+    expected = {"2026-01-01 00:00:00", "2026-01-02 00:00:00"}
     chunks = list(DataFrameIterator(df, "id", "text", chunk_size=1))
     assert {row["input_id"] for chunk in chunks for row in chunk} == expected
     sdk = _sdk()
@@ -307,3 +307,49 @@ def test_datetime_ids_match_submissions_and_cache_resume(tmp_path: Path) -> None
     resumed = _run(tmp_path, sdk, df, chunk_size=1)
     assert set(resumed["input_id"]) == expected
     assert sdk.chat.completions.create.call_count == 2
+
+
+
+def test_mixed_datetime_ids_stay_stable_across_chunks_and_subsets(tmp_path: Path) -> None:
+    """Keep midnight IDs stable when other observations contain non-midnight times.
+
+    Args:
+        tmp_path: Temporary directory.
+    """
+    df = pd.DataFrame({
+        "id": pd.to_datetime(["2026-01-01 00:00:00", "2026-01-02 12:00:00"]),
+        "text": ["midnight", "noon"],
+    })
+    expected = {"2026-01-01 00:00:00", "2026-01-02 12:00:00"}
+    chunks = list(DataFrameIterator(df, "id", "text", chunk_size=1))
+    assert {row["input_id"] for chunk in chunks for row in chunk} == expected
+    midnight = df.iloc[:1]
+    assert list(DataFrameIterator(midnight, "id", "text"))[0][0]["input_id"] == "2026-01-01 00:00:00"
+    cache = SqliteCache(tmp_path / "cache.db")
+    cache.put("2026-01-02 12:00:00", {"input_id": "2026-01-02 12:00:00", "label": "prior"},
+              compute_prompt_hash("Extract JSON"))
+    sdk = _sdk()
+    first = _run(tmp_path, sdk, df, chunk_size=1)
+    assert set(first["input_id"]) == expected
+    assert sdk.chat.completions.create.call_count == 1
+    submitted = json.loads(sdk.chat.completions.create.call_args.kwargs["messages"][1]["content"])
+    assert submitted[0]["input_id"] == "2026-01-01 00:00:00"
+    assert cache.all_ids() == expected
+    subset_result = _run(tmp_path, sdk, midnight, chunk_size=1)
+    assert subset_result["input_id"].tolist() == ["2026-01-01 00:00:00"]
+    assert set(_run(tmp_path, sdk, df, chunk_size=1)["input_id"]) == expected
+    assert sdk.chat.completions.create.call_count == 1
+
+
+def test_timestamp_and_equivalent_string_ids_are_rejected(tmp_path: Path) -> None:
+    """Use the same scalar conversion when validating heterogeneous source IDs.
+
+    Args:
+        tmp_path: Temporary directory.
+    """
+    df = pd.DataFrame({
+        "id": pd.Series([pd.Timestamp("2026-01-01"), "2026-01-01 00:00:00"], dtype=object),
+        "text": ["first", "second"],
+    })
+    with pytest.raises(ValueError, match="unique row IDs after string conversion"):
+        _run(tmp_path, _sdk(), df)
